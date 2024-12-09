@@ -39,5 +39,7 @@ namespace ModelLayer.Model.Entity
         public Role role { get; set; } = Role.USER;
 
         public string address { get; set; } = "";
+
+        public ICollection<Order>? orders { get; set; }
     }
 }
