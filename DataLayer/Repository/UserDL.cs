@@ -44,7 +44,7 @@ namespace DataLayer.Repository
 
                 int changes = await _context.SaveChangesAsync();
 
-                if (changes > 0)
+                if (changes < 0)
                 {
                     throw new DatabaseOperationException("DataBase error");
                 }
@@ -63,46 +63,186 @@ namespace DataLayer.Repository
         {
             var isExists = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(email));
 
-            if (isExists != null)
+            if (isExists == null)
             {
                 throw new UserNotFoundException("User Not found/Invalid email");
             }
+
+            _context.User.Remove(isExists);
+
+            int chages = await _context.SaveChangesAsync();
+            if (chages > 0)
+            {
+                throw new DatabaseOperationException("DataBase error");
+            }
+
+            return new ResponseBody<bool>
+            {
+                Data = true,
+                Success = true,
+                Message = "User Deleted sucessfull",
+                StatusCode = HttpStatusCode.OK
+            };
+
+
         }
 
-        public Task<ResponseBody<bool>> ActivateUserAsync(int userId)
+        public async Task<ResponseBody<ICollection<UserResponseDto>>> GetAllUsersAsync()
         {
-            throw new NotImplementedException();
+            var userCollection =await _context.User.ToListAsync();
+
+            var UserDto=_mapper.Map<ICollection<UserResponseDto>>(userCollection);
+
+            return new ResponseBody<ICollection<UserResponseDto>>
+            {
+                Data = UserDto,
+                Success = true,
+                Message = "user data",
+                StatusCode = HttpStatusCode.OK
+            };
         }
 
-        public Task<ResponseBody<bool>> DeactivateUserAsync(int userId)
+
+        public async Task<ResponseBody<UserResponseDto>> GetUserByEmailAsync(string email)
         {
-            throw new NotImplementedException();
+            var user = _context.User.FirstOrDefaultAsync(u=>u.Email.Equals(email));
+
+            if (user == null)
+            {
+                throw new UserNotFoundException($"{email} not found.");
+            }
+
+            var userDto=_mapper.Map<UserResponseDto>(user);
+
+            return new ResponseBody<UserResponseDto>
+            {
+                Data = userDto,
+                Message = "User Data",
+                StatusCode = HttpStatusCode.OK,
+                Success = true
+            };
         }
 
-
-        public Task<ResponseBody<ICollection<User>>> GetAllUsersAsync()
+        public async Task<ResponseBody<bool>> ActivateUserAsync(int userId)
         {
-            throw new NotImplementedException();
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException("Invalid user Id");
+            }
+
+            user.IsActive = true;
+
+            int changes = await _context.SaveChangesAsync();
+
+            if (changes < 0)
+            {
+                throw new DatabaseOperationException("DataBase error");
+            }
+
+            return new ResponseBody<bool>
+            {
+                Data= true,
+                Success=true,
+                Message= "User active",
+                StatusCode= HttpStatusCode.OK,
+            };
         }
 
-        public Task<ResponseBody<UserResponseDto>> GetUserByEmailAsync(string email)
+        public async Task<ResponseBody<bool>> DeactivateUserAsync(int userId)
         {
-            throw new NotImplementedException();
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException("Invalid user Id");
+            }
+
+            user.IsActive = true;
+
+            int changes = await _context.SaveChangesAsync();
+
+            if (changes < 0)
+            {
+                throw new DatabaseOperationException("DataBase error");
+            }
+
+            return new ResponseBody<bool>
+            {
+                Data = true,
+                Success = true,
+                Message = "User Deactive",
+                StatusCode = HttpStatusCode.OK,
+            };
         }
 
-        public Task<ResponseBody<UserResponseDto>> GetUserByIdAsync(int userId)
+        public async Task<ResponseBody<UserResponseDto>> GetUserByIdAsync(int userId)
         {
-            throw new NotImplementedException();
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if(user == null)
+            {
+                throw new UserNotFoundException("Invalid user Id");
+            }
+
+            var userDto = _mapper.Map<UserResponseDto>(user);
+
+            return new ResponseBody<UserResponseDto>
+            {
+                Data= userDto,
+                Message="user Entity",
+                StatusCode = HttpStatusCode.OK,
+                Success = true
+            };
+
+
         }
 
-        public Task<ResponseBody<UserResponseDto>> UpdateUserAsync(UserUpdateDto UserUpdateDto)
+        public async Task<ResponseBody<UserResponseDto>> UpdateUserAsync(UserUpdateDto userUpdateDto)
         {
-            throw new NotImplementedException();
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(userUpdateDto.Email));
+
+            if (user == null)
+            {
+                throw new UserNotFoundException("User not found");
+            }
+
+            user = _mapper.Map<User>(userUpdateDto);
+
+            int changes = await _context.SaveChangesAsync();
+
+            if(changes > 0)
+            {
+                var userDto = _mapper.Map<UserResponseDto>(user);
+                return new ResponseBody<UserResponseDto>
+                {
+                    Data = userDto,
+                    Message = "User Updaate Successfull",
+                    Success = true,
+                    StatusCode = HttpStatusCode.OK,
+                };
+            }
+
+            throw new DatabaseOperationException("Data Base error");
+
         }
 
-        public Task<ResponseBody<bool>> UserExistsByEmailAsync(string email)
+        public async Task<ResponseBody<bool>> UserExistsByEmailAsync(string email)
         {
-            throw new NotImplementedException();
+            var user = await _context.User.FirstOrDefaultAsync(u=>u.Email.Equals(email));
+
+            if(user == null)
+            {
+                throw new UserNotFoundException("User not found");
+            }
+            return new ResponseBody<bool>
+            {
+                Data = true,
+                Message = "user Exists",
+                StatusCode = HttpStatusCode.OK,
+                Success = true
+            };
         }
     }
 }
