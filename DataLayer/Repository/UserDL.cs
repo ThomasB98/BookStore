@@ -33,7 +33,6 @@ namespace DataLayer.Repository
             _logger = loggerService;
         }
 
-
         public async Task<ResponseBody<UserResponseDto>> CreateUserAsync(UserRegistrationDto userDto)
         {
             _logger.LogInformation($"Attempting to create user with email: {userDto.Email}");
@@ -118,7 +117,6 @@ namespace DataLayer.Repository
                 StatusCode = HttpStatusCode.OK
             };
         }
-
 
         public async Task<ResponseBody<UserResponseDto>> GetUserByEmailAsync(string email)
         {
