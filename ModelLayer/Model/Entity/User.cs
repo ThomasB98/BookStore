@@ -41,5 +41,7 @@ namespace ModelLayer.Model.Entity
         public string address { get; set; } = "";
 
         public ICollection<Order>? orders { get; set; }
+
+        public WishList? WishList { get; set; }
     }
 }
