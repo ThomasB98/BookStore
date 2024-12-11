@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataLayer.Utilities
+namespace DataLayer.Utilities.ResponseBody
 {
     public class ResponseBody<T>
     {
