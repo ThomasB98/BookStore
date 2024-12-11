@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ModelLayer.Model.Entity
 {
+    [Table("Book")]
     public class Book
     {
         [Key]

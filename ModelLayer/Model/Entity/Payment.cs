@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ModelLayer.Model.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,22 +9,23 @@ using System.Threading.Tasks;
 
 namespace ModelLayer.Model.Entity
 {
-    [Table("cart")]
-    public class Cart
+    [Table("payment")]
+    public class Payment
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int id { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        public int userId { get; set; }
+        public int orderID { get; set; }
 
-        [ForeignKey("userId")]
-        public User? user {  get; set; }
+        [ForeignKey("orderId")]
+        public Order? Order { get; set; }
 
         [Required]
-        public float total { get; set; }
+        public decimal amount { get; set; }
 
-        public ICollection<CartItem>? cartItems { get; set; }
+        public PaymentStatus PaymentStatus { get; set; }
+
     }
 }

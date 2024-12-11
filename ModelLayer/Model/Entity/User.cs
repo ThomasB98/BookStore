@@ -42,6 +42,12 @@ namespace ModelLayer.Model.Entity
 
         public ICollection<Order>? orders { get; set; }
 
-        public WishList? WishList { get; set; }
+        public WishList? wishList { get; set; }
+
+        [Required]
+        public int cartId { get; set; }
+
+        [ForeignKey("cartId")]
+        public Cart? Cart { get; set; }
     }
 }

@@ -32,5 +32,7 @@ namespace ModelLayer.Model.Entity
         public decimal totalAmount { get; set; }
 
         public ICollection<OrderItem>? Items { get; set; }
+     
+        
     }
 }
