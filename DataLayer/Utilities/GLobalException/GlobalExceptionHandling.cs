@@ -43,6 +43,11 @@ namespace DataLayer.Utilities.GLobalException
                 _logger.LogWarning($"User Not Found Exception: {ex.Message}");
                 await HandleExceptionAsync(context, ex, HttpStatusCode.NotFound);
             }
+            catch(BookNotFoundException ex)
+            {
+                _logger.LogWarning($"Book Not Found Exception: {ex.Message}");
+                await HandleExceptionAsync(context, ex, HttpStatusCode.NotFound);
+            }
             catch (Exception ex)
             {
                 _logger.LogCritical($"Unhandled Exception: {ex.Message}", ex);

@@ -1,4 +1,5 @@
 ﻿using DataLayer.Utilities.ResponseBody;
+using ModelLayer.DTO.Book;
 using ModelLayer.Model.Entity;
 using System;
 using System.Collections.Generic;
@@ -10,13 +11,13 @@ namespace DataLayer.Interfaces
 {
     public interface IBook
     {
-        Task<ResponseBody<IEnumerable<Book>>> GetAllBooksAsync();
+        Task<ResponseBody<IEnumerable<BookResponseDto>>> GetAllBooksAsync();
 
-        Task<ResponseBody<Book?>> GetBookByIdAsync(int id);
+        Task<ResponseBody<BookResponseDto?>> GetBookByIdAsync(int id);
 
-        Task<ResponseBody<Book>> AddBookAsync(Book book);
+        Task<ResponseBody<bool>> AddBookAsync(BookCreateDto book);
 
-        Task<ResponseBody<Book>> UpdateBookAsync(Book book);
+        Task<ResponseBody<BookResponseDto>> UpdateBookAsync(BookUpdateDto book);
 
         Task<ResponseBody<bool>> DeleteBookAsync(int id);
     }
