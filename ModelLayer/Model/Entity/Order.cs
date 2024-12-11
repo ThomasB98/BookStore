@@ -27,5 +27,10 @@ namespace ModelLayer.Model.Entity
 
         [Required]
         public OrderStatus orderStatus { get; set; }
+
+        [Required]
+        public decimal totalAmount { get; set; }
+
+        public ICollection<OrderItem>? Items { get; set; }
     }
 }
