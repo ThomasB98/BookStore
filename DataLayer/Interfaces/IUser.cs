@@ -21,7 +21,7 @@ namespace DataLayer.Interfaces
 
         Task<ResponseBody<UserResponseDto>> GetUserByEmailAsync(string email);
 
-        Task<ResponseBody<ICollection<User>>> GetAllUsersAsync();
+        Task<ResponseBody<ICollection<UserResponseDto>>> GetAllUsersAsync();
 
         Task<ResponseBody<bool>> UserExistsByEmailAsync(string email);
 

@@ -3,8 +3,10 @@ using DataLayer.Constants.DBContext;
 using DataLayer.Exceptions;
 using DataLayer.Interfaces;
 using DataLayer.Utilities.Hasher;
+using DataLayer.Utilities.Logger;
 using DataLayer.Utilities.ResponseBody;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ModelLayer.DTO.User;
 using ModelLayer.Model.Entity;
 using System;
@@ -21,61 +23,72 @@ namespace DataLayer.Repository
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly IPassHasher _passHasher;
+        private readonly ILoggerService _logger;
 
-        public UserDL(DataContext context, IMapper mapper,IPassHasher passHasher) {
+        public UserDL(DataContext context, IMapper mapper, IPassHasher passHasher, ILoggerService loggerService)
+        {
             _context = context;
             _mapper = mapper;
             _passHasher = passHasher;
+            _logger = loggerService;
         }
 
 
         public async Task<ResponseBody<UserResponseDto>> CreateUserAsync(UserRegistrationDto userDto)
         {
-                var isExists = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(userDto.Email));
+            _logger.LogInformation($"Attempting to create user with email: {userDto.Email}");
 
-                if (isExists != null)
-                {
-                    throw new UserAllredyExistsException("Email Alredy Exists");
-                }
-                var user = _mapper.Map<User>(userDto);
-                user.CreatedDate= DateTime.Now;
-                user.Password=_passHasher.encrypt(userDto.Password);
-                await _context.User.AddAsync(user);
+            var isExists = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(userDto.Email));
 
-                int changes = await _context.SaveChangesAsync();
+            if (isExists != null)
+            {
+                _logger.LogWarning($"User registration attempt failed. Email already exists: {userDto.Email}");
+                throw new UserAllredyExistsException("Email Alredy Exists");
+            }
+            var user = _mapper.Map<User>(userDto);
+            user.CreatedDate = DateTime.Now;
+            user.Password = _passHasher.encrypt(userDto.Password);
+            await _context.User.AddAsync(user);
 
-                if (changes < 0)
-                {
-                    throw new DatabaseOperationException("DataBase error");
-                }
-                var userRespo = _mapper.Map<UserResponseDto>(user);
+            int changes = await _context.SaveChangesAsync();
 
-                return new ResponseBody<UserResponseDto>
-                {
-                    Data = userRespo,
-                    Success = true,
-                    Message = "User Registration sucessfull",
-                    StatusCode = HttpStatusCode.Created
-                };
+            if (changes <= 0)
+            {
+                _logger.LogError("Database operation failed during user creation");
+                throw new DatabaseOperationException("DataBase error");
+            }
+            var userRespo = _mapper.Map<UserResponseDto>(user);
+            _logger.LogInformation($"User created successfully. Email: {userDto.Email}, User ID: {userRespo.Id}");
+
+            return new ResponseBody<UserResponseDto>
+            {
+                Data = userRespo,
+                Success = true,
+                Message = "User Registration sucessfull",
+                StatusCode = HttpStatusCode.Created
+            };
         }
 
         public async Task<ResponseBody<bool>> DeleteUserAsync(string email)
         {
+            _logger.LogInformation($"Attempting to delete user with email: {email}");
             var isExists = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(email));
 
             if (isExists == null)
             {
+                _logger.LogWarning($"Delete user attempt failed. User not found: {email}");
                 throw new UserNotFoundException("User Not found/Invalid email");
             }
 
             _context.User.Remove(isExists);
 
             int chages = await _context.SaveChangesAsync();
-            if (chages > 0)
+            if (chages <= 0)
             {
+                _logger.LogError($"Database operation failed during user deletion. Email: {email}");
                 throw new DatabaseOperationException("DataBase error");
             }
-
+            _logger.LogInformation($"User deleted successfully. Email: {email}");
             return new ResponseBody<bool>
             {
                 Data = true,
@@ -89,9 +102,13 @@ namespace DataLayer.Repository
 
         public async Task<ResponseBody<ICollection<UserResponseDto>>> GetAllUsersAsync()
         {
-            var userCollection =await _context.User.ToListAsync();
+            _logger.LogInformation("Retrieving all users");
+            var userCollection = await _context.User.ToListAsync();
 
-            var UserDto=_mapper.Map<ICollection<UserResponseDto>>(userCollection);
+
+
+            var UserDto = _mapper.Map<ICollection<UserResponseDto>>(userCollection);
+            _logger.LogInformation($"Retrieved {UserDto.Count} users");
 
             return new ResponseBody<ICollection<UserResponseDto>>
             {
@@ -105,14 +122,18 @@ namespace DataLayer.Repository
 
         public async Task<ResponseBody<UserResponseDto>> GetUserByEmailAsync(string email)
         {
-            var user = _context.User.FirstOrDefaultAsync(u=>u.Email.Equals(email));
+            _logger.LogInformation($"Retrieving user by email: {email}");
+
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(email));
 
             if (user == null)
             {
+                _logger.LogWarning($"User not found. Email: {email}");
                 throw new UserNotFoundException($"{email} not found.");
             }
 
-            var userDto=_mapper.Map<UserResponseDto>(user);
+            var userDto = _mapper.Map<UserResponseDto>(user);
+            _logger.LogInformation($"User retrieved successfully. Email: {email}, User ID: {userDto.Id}");
 
             return new ResponseBody<UserResponseDto>
             {
@@ -125,10 +146,13 @@ namespace DataLayer.Repository
 
         public async Task<ResponseBody<bool>> ActivateUserAsync(int userId)
         {
+            _logger.LogInformation($"Attempting to activate user. User ID: {userId}");
+
             var user = await _context.User.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
+                _logger.LogWarning($"User activation failed. Invalid user ID: {userId}");
                 throw new UserNotFoundException("Invalid user Id");
             }
 
@@ -138,24 +162,30 @@ namespace DataLayer.Repository
 
             if (changes < 0)
             {
+                _logger.LogError($"Database operation failed during user activation. User ID: {userId}");
                 throw new DatabaseOperationException("DataBase error");
             }
 
+            _logger.LogInformation($"User activated successfully. User ID: {userId}");
+
             return new ResponseBody<bool>
             {
-                Data= true,
-                Success=true,
-                Message= "User active",
-                StatusCode= HttpStatusCode.OK,
+                Data = true,
+                Success = true,
+                Message = "User active",
+                StatusCode = HttpStatusCode.OK,
             };
         }
 
         public async Task<ResponseBody<bool>> DeactivateUserAsync(int userId)
         {
+            _logger.LogInformation($"Attempting to deactivate user. User ID: {userId}");
+
             var user = await _context.User.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
+                _logger.LogWarning($"User deactivation failed. Invalid user ID: {userId}");
                 throw new UserNotFoundException("Invalid user Id");
             }
 
@@ -165,8 +195,11 @@ namespace DataLayer.Repository
 
             if (changes < 0)
             {
+                _logger.LogError($"Database operation failed during user deactivation. User ID: {userId}");
                 throw new DatabaseOperationException("DataBase error");
             }
+
+            _logger.LogInformation($"User deactivated successfully. User ID: {userId}");
 
             return new ResponseBody<bool>
             {
@@ -179,19 +212,23 @@ namespace DataLayer.Repository
 
         public async Task<ResponseBody<UserResponseDto>> GetUserByIdAsync(int userId)
         {
+            _logger.LogInformation($"Retrieving user by ID: {userId}");
+
             var user = await _context.User.FirstOrDefaultAsync(u => u.Id == userId);
 
-            if(user == null)
+            if (user == null)
             {
+                _logger.LogWarning($"User not found. User ID: {userId}");
                 throw new UserNotFoundException("Invalid user Id");
             }
 
             var userDto = _mapper.Map<UserResponseDto>(user);
+            _logger.LogInformation($"User retrieved successfully. User ID: {userId}, Email: {userDto.Email}");
 
             return new ResponseBody<UserResponseDto>
             {
-                Data= userDto,
-                Message="user Entity",
+                Data = userDto,
+                Message = "user Entity",
                 StatusCode = HttpStatusCode.OK,
                 Success = true
             };
@@ -201,10 +238,13 @@ namespace DataLayer.Repository
 
         public async Task<ResponseBody<UserResponseDto>> UpdateUserAsync(UserUpdateDto userUpdateDto)
         {
+            _logger.LogInformation($"Attempting to update user. Email: {userUpdateDto.Email}");
+
             var user = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(userUpdateDto.Email));
 
             if (user == null)
             {
+                _logger.LogWarning($"User update failed. User not found: {userUpdateDto.Email}");
                 throw new UserNotFoundException("User not found");
             }
 
@@ -212,9 +252,11 @@ namespace DataLayer.Repository
 
             int changes = await _context.SaveChangesAsync();
 
-            if(changes > 0)
+            if (changes > 0)
             {
                 var userDto = _mapper.Map<UserResponseDto>(user);
+                _logger.LogInformation($"User updated successfully. Email: {userUpdateDto.Email}, User ID: {userDto.Id}");
+
                 return new ResponseBody<UserResponseDto>
                 {
                     Data = userDto,
@@ -223,19 +265,25 @@ namespace DataLayer.Repository
                     StatusCode = HttpStatusCode.OK,
                 };
             }
-
+            _logger.LogError($"Database operation failed during user update. Email: {userUpdateDto.Email}");
             throw new DatabaseOperationException("Data Base error");
 
         }
 
         public async Task<ResponseBody<bool>> UserExistsByEmailAsync(string email)
         {
-            var user = await _context.User.FirstOrDefaultAsync(u=>u.Email.Equals(email));
+            _logger.LogInformation($"Checking if user exists. Email: {email}");
 
-            if(user == null)
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(email));
+
+            if (user == null)
             {
+                _logger.LogWarning($"User does not exist. Email: {email}");
                 throw new UserNotFoundException("User not found");
             }
+
+            _logger.LogInformation($"User exists. Email: {email}");
+
             return new ResponseBody<bool>
             {
                 Data = true,
@@ -244,5 +292,6 @@ namespace DataLayer.Repository
                 Success = true
             };
         }
-    }
+
+    }  
 }
