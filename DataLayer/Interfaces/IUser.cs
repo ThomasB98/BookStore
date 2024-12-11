@@ -15,7 +15,7 @@ namespace DataLayer.Interfaces
 
         Task<ResponseBody<UserResponseDto>> UpdateUserAsync(UserUpdateDto UserUpdateDto);
 
-        Task<ResponseBody<bool>> DeleteUserAsync(int userId);
+        Task<ResponseBody<bool>> DeleteUserAsync(string email);
 
         Task<ResponseBody<UserResponseDto>> GetUserByIdAsync(int userId);
 

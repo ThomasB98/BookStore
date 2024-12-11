@@ -12,7 +12,8 @@ namespace BookStore
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            builder.Services.AddScoped<IPassHasher, PassHasher>();
+            builder.Services.AddScoped<IUser, UserDL>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
