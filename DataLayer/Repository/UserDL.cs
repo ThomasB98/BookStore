@@ -5,6 +5,7 @@ using DataLayer.Interfaces;
 using DataLayer.Utilities.Hasher;
 using DataLayer.Utilities.Logger;
 using DataLayer.Utilities.ResponseBody;
+using DataLayer.Utilities.Token;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ModelLayer.DTO.User;
@@ -24,13 +25,15 @@ namespace DataLayer.Repository
         private readonly IMapper _mapper;
         private readonly IPassHasher _passHasher;
         private readonly ILoggerService _logger;
+        private readonly IJwtToken _jwtToken;
 
-        public UserDL(DataContext context, IMapper mapper, IPassHasher passHasher, ILoggerService loggerService)
+        public UserDL(DataContext context, IMapper mapper, IPassHasher passHasher, ILoggerService loggerService,IJwtToken jwtToken)
         {
             _context = context;
             _mapper = mapper;
             _passHasher = passHasher;
             _logger = loggerService;
+            _jwtToken = jwtToken;
         }
 
         public async Task<ResponseBody<UserResponseDto>> CreateUserAsync(UserRegistrationDto userDto)
@@ -291,5 +294,43 @@ namespace DataLayer.Repository
             };
         }
 
+        public async Task<ResponseBody<string>> Login(UserLoginDto loginDto)
+        {
+            _logger.LogInformation($"Checking if user exists. Email: {loginDto.Email}");
+
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Email.Equals(loginDto.Email));
+
+            if (user == null)
+            {
+                _logger.LogWarning($"User does not exist. Email: {loginDto.Email}");
+                throw new UserNotFoundException("User not found");
+            }
+
+            _logger.LogInformation($"Checking if password matches. Email: {loginDto.Email} . password : {loginDto.Password}");
+
+            if (_passHasher.verfiy(user.Password,loginDto.Password))
+            {
+                _logger.LogInformation($"password matches. Email: {loginDto.Email} . password : {loginDto.Password}");
+                var token = _jwtToken.GenerateJwtToken(user.Id.ToString(), user.Email);
+
+
+                _logger.LogInformation($"logging successfull");
+                return new ResponseBody<string>()
+                {
+                    Data = token,
+                    Success = true,
+                    Message = "Login succefull",
+                    StatusCode = HttpStatusCode.OK
+                };
+            }
+            _logger.LogWarning($"logging failed");
+            return new ResponseBody<string>()
+            {
+                Data = "",
+                Success = false,
+                Message = "Login Unsuccefull Invalid Password",
+                StatusCode = HttpStatusCode.BadRequest
+            };
+        }
     }  
 }

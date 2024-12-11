@@ -29,6 +29,8 @@ namespace DataLayer.Interfaces
 
         Task<ResponseBody<bool>> DeactivateUserAsync(int userId);
 
+        Task<ResponseBody<string>> Login(UserLoginDto loginDto);
+
 
     }
 }
