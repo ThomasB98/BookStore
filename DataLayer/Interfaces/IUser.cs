@@ -9,6 +9,5 @@ namespace DataLayer.Interfaces
     public interface IUser
     {
 
-
     }
 }
