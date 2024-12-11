@@ -39,5 +39,7 @@ namespace ModelLayer.Model.Entity
         public ICollection<CartItem>? cartItems { get; set; }
 
         public ICollection<wishListItem>? wishListItems { get; set; }
+
+        public ICollection<BookCategory>? BookCategories { get; set; }
     }
 }
