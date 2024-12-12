@@ -17,6 +17,7 @@ namespace DataLayer.Constants.DBContext
 
         public DbSet<User> User => Set<User>();
         public DbSet<Book> Book => Set<Book>();
+        public DbSet<CartItem> CartItem => Set<CartItem>();
         public DbSet<BookCategory> BookCategory => Set<BookCategory>();
         public DbSet<Cart> Cart => Set<Cart>(); 
         public DbSet<Category> Category => Set<Category>();

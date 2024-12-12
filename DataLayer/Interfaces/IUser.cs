@@ -13,7 +13,7 @@ namespace DataLayer.Interfaces
     {
         Task<ResponseBody<UserResponseDto>> CreateUserAsync(UserRegistrationDto userDto);
 
-        Task<ResponseBody<UserResponseDto>> UpdateUserAsync(UserUpdateDto UserUpdateDto);
+        //Task<ResponseBody<UserResponseDto>> UpdateUserAsync(UserUpdateDto UserUpdateDto);
 
         Task<ResponseBody<bool>> DeleteUserAsync(string email);
 

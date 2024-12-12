@@ -10,13 +10,9 @@ namespace ModelLayer.DTO.Cart_CartItem
     public class CartItemUpdateDto
     {
         [Required]
-        public int Id { get; set; }
+        public int CartItemId { get; set; }
 
         [Required]
-        public int Quantity { get; set; }
-
-        [Required]
-        [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value.")]
-        public float Price { get; set; }
+        public int NewQuantity { get; set; }
     }
 }

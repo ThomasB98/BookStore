@@ -25,7 +25,7 @@ namespace ModelLayer.Model.Entity
         public int quantity { get; set; }
 
         [Required]
-        public int Price { get; set; }
+        public float Price { get; set; }
 
         [Required]
         public int bookId { get; set; }
