@@ -16,9 +16,9 @@ namespace ModelLayer.Model.Entity
         public int Id { get; set; }
 
         [Required]
-        public int UserId { get; set; }
+        public int userId { get; set; }
 
-        [ForeignKey("UserId")]
+        [ForeignKey("userId")]
         public User? User { get; set; }
 
         [Required]

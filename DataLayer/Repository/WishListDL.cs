@@ -21,9 +21,9 @@ namespace DataLayer.Repository
     {
         private readonly IMapper _mapper;
         private readonly DataContext _dataContext;
-        private readonly HttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public WishListDL(IMapper mapper, DataContext dataContext, HttpContextAccessor httpContextAccessor)
+        public WishListDL(IMapper mapper, DataContext dataContext, IHttpContextAccessor httpContextAccessor)
         {
             _dataContext = dataContext;
             _mapper = mapper;

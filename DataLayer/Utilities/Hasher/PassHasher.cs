@@ -12,7 +12,7 @@ namespace DataLayer.Utilities.Hasher
     {
         private DataContext _dataContext;
 
-        PassHasher(DataContext dataContext) { 
+        public PassHasher(DataContext dataContext) { 
             _dataContext = dataContext; 
         }
 

@@ -19,7 +19,7 @@ namespace ModelLayer.Model.Entity
         [Required]
         public int orderID { get; set; }
 
-        [ForeignKey("orderId")]
+        [ForeignKey("orderID")]
         public Order? Order { get; set; }
 
         [Required]
