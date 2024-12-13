@@ -12,7 +12,7 @@ namespace DataLayer.Interfaces
     public interface IwishList
     {
         // Get wishlist details
-        Task<ResponseBody<WishListResponseDto>> GetWishListAsync(int userId);
+        Task<ResponseBody<WishListResponseDto>> GetWishListAsync();
 
         // Add a book to wishlist
         Task<ResponseBody<WishListResponseDto>> AddToWishListAsync(int bookId);
@@ -21,16 +21,13 @@ namespace DataLayer.Interfaces
         Task<ResponseBody<bool>> RemoveFromWishListAsync(int wishListItemId);
 
         // Get all wishlist items for a user
-        Task<ResponseBody<IEnumerable<WishListItemResponseDto>>> GetWishListItemsAsync(int userId);
+        Task<ResponseBody<IEnumerable<WishListItemResponseDto>>> GetWishListItemsAsync();
 
         // Check if a book is already in the wishlist
-        Task<ResponseBody<bool>> IsBookInWishListAsync(int userId, int bookId);
+        Task<ResponseBody<bool>> IsBookInWishListAsync(int bookId);
 
         // Clear entire wishlist
-        Task<ResponseBody<bool>> ClearWishListAsync(int userId);
-
-        // Method to update wishlist
-        Task<ResponseBody<WishListResponseDto>> UpdateWishlistAsync(int wishlistId, UpdateWishListDto updateWishListDto);
+        Task<ResponseBody<bool>> ClearWishListAsync();
 
     }
 }

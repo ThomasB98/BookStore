@@ -105,34 +105,193 @@ namespace DataLayer.Repository
             }
         }
 
-        public Task<ResponseBody<bool>> ClearWishListAsync(int userId)
+        public async Task<ResponseBody<bool>> ClearWishListAsync()
         {
-            throw new NotImplementedException();
+            var userContext = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userContext == null)
+            {
+                throw new UserNotLoggedInException("user is not loggedin");
+            }
+
+            var userId = int.Parse(userContext);
+
+            var wishList = await _dataContext.WishList.FirstOrDefaultAsync(wl => wl.userId == userId);
+
+            if(wishList == null)
+            {
+                return new ResponseBody<bool>
+                {
+                    Data = true,
+                    Success = true,
+                    Message = "WishList Clear",
+                    StatusCode = HttpStatusCode.OK
+                };
+            }
+
+            var wishListItems = await _dataContext.wishListItem
+                .Where(wi => wi.WishListId == wishList.id)
+                .ToListAsync();
+
+            _dataContext.wishListItem.RemoveRange(wishListItems);
+            await _dataContext.SaveChangesAsync();
+
+            return new ResponseBody<bool>
+            {
+                Data = true,
+                Success = true,
+                Message = "WishList Clear",
+                StatusCode = HttpStatusCode.OK
+            };
         }
 
-        public Task<ResponseBody<WishListResponseDto>> GetWishListAsync(int userId)
+        public async Task<ResponseBody<WishListResponseDto>> GetWishListAsync()
         {
-            throw new NotImplementedException();
+            var userContext= _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(userContext == null )
+            {
+                throw new UserNotLoggedInException("user is not loggedin");
+            }
+
+            var userId = int.Parse(userContext);
+
+            var wishList=await _dataContext.WishList.FirstOrDefaultAsync(wl=>wl.userId==userId);
+
+            if(wishList == null)
+            {
+                WishList wl = new WishList()
+                {
+                    userId=userId,
+                    CreatedDate = DateTime.Now,
+                };
+
+                var wishListDto=_mapper.Map<WishListResponseDto>(wl);
+
+                return new ResponseBody<WishListResponseDto>
+                {
+                    Data = wishListDto,
+                    Success = true,
+                    Message = "user wishList",
+                    StatusCode = HttpStatusCode.OK
+                };
+            }
+            else
+            {
+                var wishListDto = _mapper.Map<WishListResponseDto>(wishList);
+
+                return new ResponseBody<WishListResponseDto>
+                {
+                    Data = wishListDto,
+                    Success = true,
+                    Message = "user wishList",
+                    StatusCode = HttpStatusCode.OK
+                };
+            }
         }
 
-        public Task<ResponseBody<IEnumerable<WishListItemResponseDto>>> GetWishListItemsAsync(int userId)
+        public async Task<ResponseBody<IEnumerable<WishListItemResponseDto>>> GetWishListItemsAsync()
         {
-            throw new NotImplementedException();
+            var userContext = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userContext == null)
+            {
+                throw new UserNotLoggedInException("user is not loggedin");
+            }
+
+            var userId = int.Parse(userContext);
+
+            var wishList = await _dataContext.WishList
+                .Include(w => w.WishListItems)
+                    .ThenInclude(wi => wi.book)
+                .FirstOrDefaultAsync(w => w.userId == userId);
+
+            if (wishList == null)
+            {
+                return new ResponseBody<IEnumerable<WishListItemResponseDto>>
+                {
+                    Data = null,
+                    Success = true,
+                    Message = "no item in wish lish",
+                    StatusCode = HttpStatusCode.OK
+                };
+            }
+
+            var wishListDto = _mapper.Map<IEnumerable<WishListItemResponseDto>>(wishList);
+
+            return new ResponseBody<IEnumerable<WishListItemResponseDto>>
+            {
+                Data = wishListDto,
+                Success = true,
+                Message = "Wishlist items retrieved successfully.",
+                StatusCode = HttpStatusCode.OK
+            };
         }
 
-        public Task<ResponseBody<bool>> IsBookInWishListAsync(int userId, int bookId)
+        public async Task<ResponseBody<bool>> IsBookInWishListAsync(int bookId)
         {
-            throw new NotImplementedException();
+            var userContext = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userContext == null)
+            {
+                throw new UserNotLoggedInException("user is not loggedin");
+            }
+            var userId = int.Parse(userContext);
+
+            var existingWishListItem = await _dataContext.wishListItem.Include(wi => wi.WishList)
+                .FirstOrDefaultAsync(wi => wi.WishList.userId == userId && wi.bookId == bookId);
+
+            if(existingWishListItem == null)
+            {
+                return new ResponseBody<bool>
+                {
+                    Data = false,
+                    Success = true,
+                    Message = "Book not present",
+                    StatusCode = HttpStatusCode.OK
+                };
+            }
+
+            return new ResponseBody<bool>
+            {
+                Data = true,
+                Success = true,
+                Message = "Book not present",
+                StatusCode = HttpStatusCode.OK
+            };
+
         }
 
-        public Task<ResponseBody<bool>> RemoveFromWishListAsync(int wishListItemId)
+        public async Task<ResponseBody<bool>> RemoveFromWishListAsync(int wishListItemId)
         {
-            throw new NotImplementedException();
-        }
+            var userContext = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userContext == null)
+            {
+                throw new UserNotLoggedInException("user is not loggedin");
+            }
+            var userId = int.Parse(userContext);
 
-        public Task<ResponseBody<WishListResponseDto>> UpdateWishlistAsync(int wishlistId, UpdateWishListDto updateWishListDto)
-        {
-            throw new NotImplementedException();
+            var wishlist= await _dataContext.WishList.FirstOrDefaultAsync(wl=>wl.userId == userId);
+
+            if(wishlist == null)
+            {
+                throw new NoWishListException();
+            }
+
+            var wishListItem = await _dataContext.wishListItem.FirstOrDefaultAsync(wli=>wli.Id==wishListItemId);
+
+            if(wishListItem == null)
+            {
+                throw new BookNotFoundException("No such item");
+            }
+
+            _dataContext.wishListItem.Remove(wishListItem);
+
+            await _dataContext.SaveChangesAsync();
+
+            return new ResponseBody<bool>
+            {
+                Data= true,
+                Success = true,
+                Message = "Book removed",
+                StatusCode= HttpStatusCode.OK
+            };
         }
     }
 }

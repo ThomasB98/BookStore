@@ -23,5 +23,8 @@ namespace ModelLayer.Model.Entity
 
         [Required]
         public int bookId { get; set; }
+
+        [ForeignKey("bookId")]
+        public Book? book { get; set; }
     }
 }
