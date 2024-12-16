@@ -44,5 +44,7 @@ namespace ModelLayer.Model.Entity
 
         public WishList? wishList { get; set; }
 
+        public ICollection<Shipping> Shippings { get; set; }
+
     }
 }

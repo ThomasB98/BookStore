@@ -12,6 +12,7 @@ namespace ModelLayer.Model.Enums
         CANCELED,
         OUTFORDELIVERY,
         PENDING,
-        SHIPPING
+        SHIPPING,
+        CONFIRM
     }
 }

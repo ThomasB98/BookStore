@@ -24,7 +24,14 @@ namespace ModelLayer.Model.Entity
         public int quantity { get; set; }
 
         [Required]
-        public decimal price { get; set; }
+        public float price { get; set; }
+
+        [Required]
+        public int BookId { get; set; }
+
+        [ForeignKey("BookId")]
+        public Book? Book { get; set; }
+
 
     }
 }

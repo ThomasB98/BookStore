@@ -26,6 +26,6 @@ namespace DataLayer.Constants.DBContext
         public DbSet<Payment> Payment => Set<Payment>();
         public DbSet<WishList> WishList => Set<WishList>();
         public DbSet<wishListItem> wishListItem => Set<wishListItem>();
-
+        public DbSet<Shipping> Shipping => Set<Shipping>();
     }
 }

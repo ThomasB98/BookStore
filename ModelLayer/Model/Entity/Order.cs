@@ -29,10 +29,12 @@ namespace ModelLayer.Model.Entity
         public OrderStatus orderStatus { get; set; }
 
         [Required]
-        public decimal totalAmount { get; set; }
+        public float totalAmount { get; set; }
+
 
         public ICollection<OrderItem>? Items { get; set; }
-     
-        
+
+        public Shipping? Shipping { get; set; }
+
     }
 }
