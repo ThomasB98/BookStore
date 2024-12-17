@@ -3,6 +3,7 @@ using BusinessLayer.service;
 using DataLayer.Constants.DBContext;
 using DataLayer.Interfaces;
 using DataLayer.Repository;
+using DataLayer.Utilities.Authorization;
 using DataLayer.Utilities.GLobalException;
 using DataLayer.Utilities.Hasher;
 using DataLayer.Utilities.Logger;
@@ -11,7 +12,11 @@ using DataLayer.Utilities.Token;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security;
 using System.Text;
+using ModelLayer.Model.Enums;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 
 namespace BookStore
 {
@@ -22,11 +27,22 @@ namespace BookStore
             
             var builder = WebApplication.CreateBuilder(args);
 
-            
+
+            //builder.Services.AddCors(options =>
+            //{
+            //    options.AddPolicy("AllowAngularApp", builder =>
+            //    {
+            //        builder.WithOrigins("http://localhost:4200")
+            //               .AllowAnyMethod()
+            //               .AllowAnyHeader()
+            //               .AllowCredentials();
+            //    });
+            //});
 
             builder.Services.AddDbContext<DataContext>(
                   options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
           );
+
 
 
             builder.Services.AddHttpContextAccessor();
@@ -53,6 +69,20 @@ namespace BookStore
                 };
             });
 
+
+            builder.Services.AddAuthorization(options =>
+            {
+                //Role Base policy
+                //options.AddPolicy("RequireOwnerRole", policy => policy.RequireRole("OWNER"));
+                //options.AddPolicy("RequireEditirRole", policy => policy.RequireRole("EDITOR"));
+                //options.AddPolicy("RequireViewerRole", policy => policy.RequireRole("VIEWER"));
+
+                //Permission-Based policy
+                options.AddPolicy("RoleAdmin", policy =>
+                    policy.Requirements.Add(new PermissionRequirement(Role.ADMIN)));
+
+            });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -62,7 +92,7 @@ namespace BookStore
                                            typeof(WishListItemProfile));
             builder.Services.AddAutoMapper(typeof(Program).Assembly);
             builder.Services.AddHttpContextAccessor();
-
+            builder.Services.AddSingleton<IAuthorizationHandler, PermissionRequirementHandler>();
             builder.Services.AddScoped<IPassHasher, PassHasher>();
             builder.Services.AddScoped<IUser, UserDL>();
             builder.Services.AddScoped<IBook, BookDL>();
@@ -91,6 +121,34 @@ namespace BookStore
             // Add global exception handling
             builder.Services.AddTransient<GlobalExceptionHandling>();
 
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please insert JWT with Bearer into field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+            });
+
+
+
 
             var app = builder.Build();
 
@@ -107,6 +165,7 @@ namespace BookStore
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

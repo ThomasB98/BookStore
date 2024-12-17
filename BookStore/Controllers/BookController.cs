@@ -43,6 +43,7 @@ namespace BookStore.Controllers
 
         // POST
         [HttpPost]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> AddBook([FromBody] BookCreateDto book)
         {
             if (!ModelState.IsValid)
@@ -60,6 +61,7 @@ namespace BookStore.Controllers
 
         // PUT
         [HttpPut]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> UpdateBook([FromBody] BookUpdateDto book)
         {
             if (!ModelState.IsValid)
@@ -77,6 +79,7 @@ namespace BookStore.Controllers
 
         // DELETE
         [HttpDelete("{id}")]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             var response = await _bookService.DeleteBookAsync(id);

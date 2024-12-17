@@ -45,7 +45,7 @@ namespace BookStore.Controllers
         }
 
         [HttpGet("{userId}")]
-        [Authorize]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> GetUserById(int userId)
         {
             var result = await _userService.GetUserByIdAsync(userId);
@@ -58,7 +58,7 @@ namespace BookStore.Controllers
         }
 
         [HttpGet("email/{email}")]
-        [Authorize]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
             var result = await _userService.GetUserByEmailAsync(email);
@@ -71,7 +71,7 @@ namespace BookStore.Controllers
         }
 
         [HttpGet("all")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> GetAllUsers()
         {
             var result = await _userService.GetAllUsersAsync();
@@ -84,7 +84,7 @@ namespace BookStore.Controllers
         }
 
         [HttpDelete("{email}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> DeleteUser(string email)
         {
             var result = await _userService.DeleteUserAsync(email);
@@ -97,7 +97,7 @@ namespace BookStore.Controllers
         }
 
         [HttpPut("activate/{userId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> ActivateUser(int userId)
         {
             var result = await _userService.ActivateUserAsync(userId);
@@ -110,7 +110,7 @@ namespace BookStore.Controllers
         }
 
         [HttpPut("deactivate/{userId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> DeactivateUser(int userId)
         {
             var result = await _userService.DeactivateUserAsync(userId);
@@ -123,7 +123,7 @@ namespace BookStore.Controllers
         }
 
         [HttpGet("exists/{email}")]
-        [Authorize]
+        [Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> UserExists(string email)
         {
             var result = await _userService.UserExistsByEmailAsync(email);
