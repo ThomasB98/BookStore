@@ -43,5 +43,96 @@ namespace BookStore.Controllers
             return BadRequest(result);
 
         }
+
+        [HttpGet("{userId}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserById(int userId)
+        {
+            var result = await _userService.GetUserByIdAsync(userId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return NotFound(result);
+        }
+
+        [HttpGet("email/{email}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByEmail(string email)
+        {
+            var result = await _userService.GetUserByEmailAsync(email);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return NotFound(result);
+        }
+
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var result = await _userService.GetAllUsersAsync();
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpDelete("{email}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteUser(string email)
+        {
+            var result = await _userService.DeleteUserAsync(email);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return NotFound(result);
+        }
+
+        [HttpPut("activate/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ActivateUser(int userId)
+        {
+            var result = await _userService.ActivateUserAsync(userId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpPut("deactivate/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeactivateUser(int userId)
+        {
+            var result = await _userService.DeactivateUserAsync(userId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpGet("exists/{email}")]
+        [Authorize]
+        public async Task<IActionResult> UserExists(string email)
+        {
+            var result = await _userService.UserExistsByEmailAsync(email);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return NotFound(result);
+        }
     }
 }
