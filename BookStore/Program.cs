@@ -81,6 +81,7 @@ namespace BookStore
                 options.AddPolicy("RoleAdmin", policy =>
                     policy.Requirements.Add(new PermissionRequirement(Role.ADMIN)));
 
+
             });
 
             builder.Services.AddControllers();
