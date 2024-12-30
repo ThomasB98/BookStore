@@ -7,7 +7,6 @@ namespace BookStore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class BookController : Controller
     {
         private readonly IBookService _bookService;

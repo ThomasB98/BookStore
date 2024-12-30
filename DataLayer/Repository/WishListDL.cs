@@ -14,6 +14,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net;
+using ModelLayer.DTO.Book;
 
 namespace DataLayer.Repository
 {
@@ -59,6 +60,7 @@ namespace DataLayer.Repository
                     CreatedDate = DateTime.UtcNow
                 };
                 _dataContext.WishList.Add(wl);
+                await _dataContext.SaveChangesAsync();
 
                 wishListItem wli = new wishListItem()
                 {
@@ -154,9 +156,26 @@ namespace DataLayer.Repository
 
             var userId = int.Parse(userContext);
 
-            var wishList=await _dataContext.WishList.FirstOrDefaultAsync(wl=>wl.userId==userId);
+            var wishList=await _dataContext.WishList.Where(wl=>wl.userId==userId)
+                .Select(wl=>new WishListResponseDto
+                {
+                    id=wl.id,
+                    CreatedDate=wl.CreatedDate,
+                    Books=wl.WishListItems.Select(wli=>new BookResponseDto
+                    {
+                        Id=wli.book.Id,
+                        Title=wli.book.Title,
+                        Author=wli.book.Author,
+                        Price=wli.book.price,
+                        Publisher =wli.book.Publisher,
+                        Description=wli.book.descrption,
+                        Stock=wli.book.stock,
+                        Img=wli.book.img
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
 
-            if(wishList == null)
+            if (wishList == null)
             {
                 WishList wl = new WishList()
                 {
@@ -274,7 +293,7 @@ namespace DataLayer.Repository
                 throw new NoWishListException();
             }
 
-            var wishListItem = await _dataContext.wishListItem.FirstOrDefaultAsync(wli=>wli.Id==wishListItemId);
+            var wishListItem = await _dataContext.wishListItem.FirstOrDefaultAsync(wli=>wli.bookId==wishListItemId);
 
             if(wishListItem == null)
             {

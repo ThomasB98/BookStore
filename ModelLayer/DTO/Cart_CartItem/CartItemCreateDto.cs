@@ -10,9 +10,6 @@ namespace ModelLayer.DTO.Cart_CartItem
     public class CartItemCreateDto
     {
         [Required]
-        public int CartId { get; set; }
-
-        [Required]
         public int BookId { get; set; }
 
         [Required]

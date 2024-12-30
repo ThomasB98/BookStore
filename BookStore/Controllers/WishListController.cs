@@ -1,12 +1,12 @@
 ﻿using BusinessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ModelLayer.DTO.WishList_wishListItem;
 
 namespace BookStore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class WishListController : Controller
     {
         private readonly IWishListService _wishListService;
@@ -41,9 +41,10 @@ namespace BookStore.Controllers
         }
 
         // POST
-        [HttpPost("{bookId}")]
-        public async Task<IActionResult> AddToWishList(int bookId)
+        [HttpPost]
+        public async Task<IActionResult> AddToWishList([FromBody] AddToWishListDTO addToWishList)
         {
+            var bookId = addToWishList.bookId;
             var response = await _wishListService.AddToWishListAsync(bookId);
             if (response.Success)
             {

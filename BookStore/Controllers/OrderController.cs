@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ModelLayer.DTO.Order;
 using System.Security.Claims;
 
 namespace BookStore.Controllers
@@ -20,9 +21,11 @@ namespace BookStore.Controllers
         }
 
         // Places a new order
-        [HttpPost("place")]
-        public async Task<IActionResult> PlaceOrder([FromQuery] int shippingId)
+        [HttpPost]
+        public async Task<IActionResult> PlaceOrder([FromBody] placeOrderDTO placeOrder)
         {
+            var shippingId = placeOrder.shippindId;
+
             var userContext = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (userContext == null)

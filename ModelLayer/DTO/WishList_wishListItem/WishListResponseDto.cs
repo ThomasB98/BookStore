@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ModelLayer.DTO.Book;
 
 namespace ModelLayer.DTO.WishList_wishListItem
 {
@@ -13,10 +14,8 @@ namespace ModelLayer.DTO.WishList_wishListItem
     {
         public int id { get; set; }
 
-        public int userId { get; set; }
-
         public DateTime CreatedDate { get; set; }
 
-        public ICollection<wishListItem>? WishListItems { get; set; }
+        public ICollection<BookResponseDto>? Books { get; set; }
     }
 }

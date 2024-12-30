@@ -16,6 +16,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using MailKit;
+using ModelLayer.DTO.Order;
+using ModelLayer.DTO.Book;
 
 namespace DataLayer.Repository
 {
@@ -71,7 +73,7 @@ namespace DataLayer.Repository
             {
                 orderDate = DateTime.Now,
                 userId = userId,
-                orderStatus = OrderStatus.PENDING,
+                orderStatus = OrderStatus.CONFIRM,
                 totalAmount = totalAmount,
                 Items = orderItems
             };
@@ -115,12 +117,23 @@ namespace DataLayer.Repository
             var userId = int.Parse(userContext);
 
 
-            var order = await _context.Order.
-                Include(or => or.Items).
-                ThenInclude(oi => oi.Book).
-                Include(or => or.Shipping)
-                .FirstOrDefaultAsync(or => or.Id == orderId 
-                                    && or.userId == userId) ;
+            //var order = await _context.Order.
+            //    Include(or => or.Items).
+            //    ThenInclude(oi => oi.Book).
+            //    Include(or => or.Shipping)
+            //    .FirstOrDefaultAsync(or => or.Id == orderId
+            //                        && or.userId == userId);
+
+            //var order = await _context.Order.Include(or => or.Items)
+            //    .ThenInclude(oi => oi.Book).FirstOrDefaultAsync(or => or.Id == orderId
+            //    && or.userId == userId);
+
+            var order = await _context.Order
+                .Where(or => or.Id == orderId && or.userId == userId)
+                .Include(or => or.Items)
+                .ThenInclude(oi => oi.Book)   
+                .FirstOrDefaultAsync();
+
 
 
             if (order == null)
@@ -140,7 +153,7 @@ namespace DataLayer.Repository
         }
 
 
-        public async Task<ResponseBody<IEnumerable<Order>>> GetOrdersByUserIdAsync(int userId)
+        public async Task<ResponseBody<IEnumerable<OrderResponseDto>>> GetOrdersByUserIdAsync(int userId)
         {
             var user=await _context.User.FirstOrDefaultAsync(us=>us.Id == userId);
 
@@ -150,19 +163,50 @@ namespace DataLayer.Repository
             }
 
             var orders = await _context.Order
-                          .Include(o => o.Items)        
-                          .ThenInclude(oi => oi.Book)  
-                          .Include(o => o.Shipping)    
-                          .Where(o => o.userId == userId)
-                           .ToListAsync();
+                .Where(o => o.userId == userId)  
+                .Select(o => new OrderResponseDto
+                {
+                    Id = o.Id,
+                    orderDate = o.orderDate,
+                    orderStatus = o.orderStatus,
+                    totalAmount = o.totalAmount,
+                    Items = o.Items.Select(i => new OrderItemResponseDto
+                    {
+                        Id = i.Id,
+                        quantity = i.quantity,
+                        price = i.price,
+                        Book = new BookResponseDto
+                        {
+                            Id = i.Book.Id,
+                            Title = i.Book.Title,
+                            Author = i.Book.Author,
+                            Price = i.Book.price,
+                            Publisher = i.Book.Publisher,
+                            Description = i.Book.descrption,
+                            Stock = i.Book.stock,
+                            Img = i.Book.img
+                        }
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            //var orderEntity = await _context.Order
+            //              .Include(o => o.Items)        
+            //              .ThenInclude(oi => oi.Book)  
+            //               .ToListAsync();
+
+            //.Include(o => o.Shipping)
+            //              .Where(o => o.userId == userId)
+
+            //var orders = _mapper.Map<IEnumerable<OrderResponseDto>>(orderEntity);
             if (!orders.Any())
             {
                 throw new OrderNotFoundException($"No orders found for user with ID {userId}");
             }
 
-            _logger.LogInformation($"Retrieved {orders.Count} orders for user with ID {userId}.");
+            _logger.LogInformation($"Retrieved {orders} orders for user with ID {userId}.");
 
-            return new ResponseBody<IEnumerable<Order>>
+            return new ResponseBody<IEnumerable<OrderResponseDto>>
             {
                 Data = orders,
                 Message = "Orders retrieved successfully",

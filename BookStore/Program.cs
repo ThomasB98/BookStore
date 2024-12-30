@@ -27,6 +27,28 @@ namespace BookStore
             
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder => {
+                    builder
+                        .AllowAnyOrigin()     // Allow all origins
+                        .AllowAnyMethod()     // Allow all HTTP methods
+                        .AllowAnyHeader();    // Allow all headers
+                });
+
+                options.AddPolicy("SpecificOrigins",
+                    builder =>
+                    {
+                        builder.WithOrigins(
+                            "http://localhost:4200"
+                            )
+                        .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials();
+                    });
+
+            });
+
 
             //builder.Services.AddCors(options =>
             //{
@@ -90,7 +112,7 @@ namespace BookStore
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(UserProfile), typeof(BookProfile),
                                            typeof(CartProfile), typeof(WishLisProfile),
-                                           typeof(WishListItemProfile));
+                                           typeof(WishListItemProfile), typeof(CartItemProfile), typeof(OrderProfile));
             builder.Services.AddAutoMapper(typeof(Program).Assembly);
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSingleton<IAuthorizationHandler, PermissionRequirementHandler>();
@@ -100,12 +122,26 @@ namespace BookStore
             builder.Services.AddScoped<ICart, CartDL>();
             builder.Services.AddScoped<IwishList, WishListDL>();
             builder.Services.AddScoped<IJwtToken, JwtToken>();
+            builder.Services.AddScoped<IShipping, ShippingDL>();
+            builder.Services.AddScoped<IOrder, OrderDL>();
+
 
             builder.Services.AddScoped<IBookService, BookBL>();
             builder.Services.AddScoped<ICartService, CartBL>();
             builder.Services.AddScoped<IWishListService, WishListBL>();
+            builder.Services.AddScoped<IShippingService, ShippingBL>();
             builder.Services.AddScoped<IUserService, UserBL>();
             builder.Services.AddScoped<ILoggerService, LoggerService>();
+            builder.Services.AddScoped<IOrderService, OrderBL>();
+
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+                });
+
+
 
 
             // Logging Services
@@ -169,7 +205,7 @@ namespace BookStore
             app.UseAuthentication();
             app.UseAuthorization();
 
-
+            app.UseCors("AllowAll");
             app.MapControllers();
 
             app.Run();

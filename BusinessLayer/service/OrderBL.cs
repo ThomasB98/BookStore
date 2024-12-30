@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Interfaces;
 using DataLayer.Interfaces;
 using DataLayer.Utilities.ResponseBody;
+using ModelLayer.DTO.Order;
 using ModelLayer.Model.Entity;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace BusinessLayer.service
             return _orderRepo.GetOrderByIdAsync(orderId);
         }
 
-        public Task<ResponseBody<IEnumerable<Order>>> GetOrdersByUserIdAsync(int userId)
+        public Task<ResponseBody<IEnumerable<OrderResponseDto>>> GetOrdersByUserIdAsync(int userId)
         {
             return _orderRepo.GetOrdersByUserIdAsync(userId);
         }

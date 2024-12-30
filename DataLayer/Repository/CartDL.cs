@@ -50,7 +50,7 @@ namespace DataLayer.Repository
             }
 
             _logger.LogInformation($"getting user cart UserId:{userId}, log from cartDL GetCartByUserIdAsync method ");
-            var cart= await _context.Cart.FirstOrDefaultAsync(c=>c.userId == userId);
+            var cart= await _context.Cart.Include(c=>c.cartItems).ThenInclude(ci => ci.book).FirstOrDefaultAsync(c=>c.userId == userId);
 
             var cartDto=_mapper.Map<CartResponseDto>(cart);
 
@@ -82,6 +82,7 @@ namespace DataLayer.Repository
             }
             var cart = await _context.Cart
                 .Include(c => c.cartItems)
+                .ThenInclude(ci => ci.book)
                 .FirstOrDefaultAsync(c => c.userId == int.Parse(userId));
 
             if (cart == null)
@@ -96,14 +97,17 @@ namespace DataLayer.Repository
                 _context.Cart.Add(cart);
             }
 
+
             // Check if the item already exists in the cart
             var existingCartItem = cart.cartItems?.FirstOrDefault(ci => ci.bookId == cartItemDto.BookId);
 
+            CartItem cartItemToMap;
             if (existingCartItem != null)
             {
                 _logger.LogInformation($"Updating quantity for existing cart item with book ID {cartItemDto.BookId}.");
                 existingCartItem.quantity += cartItemDto.Quantity;
                 existingCartItem.Price +=book.price * cartItemDto.Quantity;
+                cartItemToMap = existingCartItem;
             }
             else
             {
@@ -113,9 +117,11 @@ namespace DataLayer.Repository
                     Cart = cart,
                     bookId = cartItemDto.BookId,
                     quantity = cartItemDto.Quantity,
-                    Price = book.price * cartItemDto.Quantity
+                    Price = book.price * cartItemDto.Quantity,
+                    book=book
                 };
                 cart.cartItems?.Add(newCartItem);
+                cartItemToMap = newCartItem;
             }
 
             // Update cart total
@@ -124,7 +130,7 @@ namespace DataLayer.Repository
             await _context.SaveChangesAsync();
 
             // Map to response DTO
-            var responseDto = _mapper.Map<CartItemResponseDto>(existingCartItem ?? cart.cartItems.Last());
+            var responseDto = _mapper.Map<CartItemResponseDto>(cartItemToMap);
 
             _logger.LogInformation("Item added to cart successfully.");
 

@@ -32,9 +32,9 @@ namespace ModelLayer.Model.Entity
         public float totalAmount { get; set; }
 
 
-        public ICollection<OrderItem>? Items { get; set; }
+        public ICollection<OrderItem> Items { get; set; }
 
-        public Shipping? Shipping { get; set; }
+        public Shipping Shipping { get; set; }
 
     }
 }

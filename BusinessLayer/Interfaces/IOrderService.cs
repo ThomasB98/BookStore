@@ -1,4 +1,5 @@
 ﻿using DataLayer.Utilities.ResponseBody;
+using ModelLayer.DTO.Order;
 using ModelLayer.Model.Entity;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace BusinessLayer.Interfaces
 
         Task<ResponseBody<Order>> GetOrderByIdAsync(int orderId);
 
-        Task<ResponseBody<IEnumerable<Order>>> GetOrdersByUserIdAsync(int userId);
+        Task<ResponseBody<IEnumerable<OrderResponseDto>>> GetOrdersByUserIdAsync(int userId);
 
         Task<ResponseBody<bool>> DeleteOrderAsync(int orderId);
     }

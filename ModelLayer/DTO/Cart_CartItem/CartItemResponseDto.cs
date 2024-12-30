@@ -14,5 +14,6 @@ namespace ModelLayer.DTO.Cart_CartItem
         public int Quantity { get; set; }
         public float Price { get; set; }
         public float Total { get; set; }
+        public float BookPrice { get; set; }
     }
 }
