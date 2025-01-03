@@ -45,7 +45,7 @@ namespace BookStore.Controllers
         }
 
         [HttpGet("{userId}")]
-        [Authorize(Policy = "RoleAdmin")]
+        //[Authorize(Policy = "RoleAdmin")]
         public async Task<IActionResult> GetUserById(int userId)
         {
             var result = await _userService.GetUserByIdAsync(userId);
