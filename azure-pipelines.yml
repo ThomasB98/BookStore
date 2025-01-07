@@ -1,0 +1,61 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'Self-Hosted'   
+
+variables:
+  system.debug: true
+  buildConfiguration: 'Release'
+
+steps:
+- checkout: self
+  clean: true
+  fetchDepth: 1
+
+- task: UseDotNet@2
+  displayName: 'Install .NET SDK'
+  timeoutInMinutes: 10
+  continueOnError: false
+  inputs:
+    packageType: 'sdk'
+    version: '6.0.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore Dependencies'
+  timeoutInMinutes: 15
+  inputs:
+    command: 'restore'
+    projects: '**/*.sln'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build Solution'
+  timeoutInMinutes: 30
+  inputs:
+    command: 'build'
+    projects: '**/*.sln'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run Tests'
+  timeoutInMinutes: 20
+  inputs:
+    command: 'test'
+    projects: '**/*[Tt]ests/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-build'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish'
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifacts'
+  timeoutInMinutes: 10
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
