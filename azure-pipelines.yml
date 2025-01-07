@@ -1,101 +1,61 @@
-# Azure Pipeline configuration for .NET application
 trigger:
-  batch: true
-  branches:
-    include:
-    - main
-    - develop
-    - feature/*
-    - release/*
-  paths:
-    exclude:
-    - README.md
-    - docs/*
+  - main
 
 pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-  dotnetSdkVersion: '6.0.x'
   system.debug: true
 
-stages:
-- stage: Build
-  displayName: 'Build and Test'
-  jobs:
-  - job: BuildAndTest
-    steps:
-    # Checkout code
-    - checkout: self
-      fetchDepth: 1
-      clean: true
-      
-    # Install .NET SDK
-    - task: UseDotNet@2
-      displayName: 'Install .NET SDK'
-      inputs:
-        packageType: 'sdk'
-        version: '$(dotnetSdkVersion)'
-        includePreviewVersions: false
+steps:
+- checkout: self
+  clean: true
+  fetchDepth: 1
 
-    # Install NuGet Tool
-    - task: NuGetToolInstaller@1
-      displayName: 'Install NuGet Tool'
-      inputs:
-        versionSpec: '5.x'
-        checkLatest: true
+- task: UseDotNet@2
+  displayName: 'Install .NET SDK'
+  timeoutInMinutes: 10
+  continueOnError: false
+  inputs:
+    packageType: 'sdk'
+    version: '6.0.x'
 
-    # Cache NuGet packages
-    - task: Cache@2
-      displayName: 'Cache NuGet packages'
-      inputs:
-        key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**,!**/obj/**'
-        restoreKeys: |
-          nuget | "$(Agent.OS)"
-        path: '$(UserProfile)/.nuget/packages'
+- task: NuGetToolInstaller@1
+  displayName: 'Install NuGet Tool'
+  timeoutInMinutes: 10
+  continueOnError: false
 
-    # Restore NuGet Packages
-    - task: NuGetCommand@2
-      displayName: 'Restore NuGet Packages'
-      inputs:
-        command: 'restore'
-        restoreSolution: '$(solution)'
-        feedsToUse: 'select'
+- task: NuGetCommand@2
+  displayName: 'Restore NuGet Packages'
+  timeoutInMinutes: 15
+  continueOnError: false
+  inputs:
+    command: 'restore'
+    restoreSolution: '**/*.sln'
 
-    # Build Solution
-    - task: VSBuild@1
-      displayName: 'Build Solution'
-      inputs:
-        solution: '$(solution)'
-        msbuildArgs: '/p:Configuration=$(buildConfiguration) /p:Platform="$(buildPlatform)"'
-        clean: true
-        maximumCpuCount: true
-        restoreNugetPackages: false
+- task: VSBuild@1
+  displayName: 'Build Solution'
+  timeoutInMinutes: 30
+  continueOnError: false
+  inputs:
+    solution: '**/*.sln'
+    msbuildArgs: '/p:Configuration=Release /p:Platform="Any CPU"'
+    clean: true
+    restoreNugetPackages: false
 
-    # Code Coverage Report
-    - task: PublishCodeCoverageResults@1
-      displayName: 'Publish Code Coverage'
-      inputs:
-        codeCoverageTool: 'Cobertura'
-        summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
-        failIfCoverageEmpty: false
+- task: DotNetCoreCLI@2
+  displayName: 'Run Unit Tests'
+  timeoutInMinutes: 20
+  continueOnError: false
+  inputs:
+    command: test
+    projects: '**/*.csproj'
 
-    # Publish Build Artifacts
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Build Artifacts'
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-
-    # Clean up
-    - task: DeleteFiles@1
-      displayName: 'Clean up artifacts'
-      condition: always()
-      inputs:
-        SourceFolder: '$(Build.ArtifactStagingDirectory)'
-        Contents: '**/*'
-        RemoveSourceFolder: true
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Build Artifacts'
+  timeoutInMinutes: 10
+  continueOnError: false
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
