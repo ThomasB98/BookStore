@@ -6,6 +6,7 @@ pool:
 
 variables:
   system.debug: true
+  buildConfiguration: 'Release'
 
 steps:
 - checkout: self
@@ -20,41 +21,40 @@ steps:
     packageType: 'sdk'
     version: '6.0.x'
 
-- task: NuGetToolInstaller@1
-  displayName: 'Install NuGet Tool'
-  timeoutInMinutes: 10
-  continueOnError: false
-
-- task: NuGetCommand@2
-  displayName: 'Restore NuGet Packages'
+- task: DotNetCoreCLI@2
+  displayName: 'Restore Dependencies'
   timeoutInMinutes: 15
-  continueOnError: false
   inputs:
     command: 'restore'
-    restoreSolution: '**/*.sln'
-
-- task: VSBuild@1
-  displayName: 'Build Solution'
-  timeoutInMinutes: 30
-  continueOnError: false
-  inputs:
-    solution: '**/*.sln'
-    msbuildArgs: '/p:Configuration=Release /p:Platform="Any CPU"'
-    clean: true
-    restoreNugetPackages: false
+    projects: '**/*.sln'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Run Unit Tests'
-  timeoutInMinutes: 20
-  continueOnError: false
+  displayName: 'Build Solution'
+  timeoutInMinutes: 30
   inputs:
-    command: test
-    projects: '**/*.csproj'
+    command: 'build'
+    projects: '**/*.sln'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run Tests'
+  timeoutInMinutes: 20
+  inputs:
+    command: 'test'
+    projects: '**/*[Tt]ests/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-build'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish'
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
 
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Build Artifacts'
+  displayName: 'Publish Artifacts'
   timeoutInMinutes: 10
-  continueOnError: false
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
