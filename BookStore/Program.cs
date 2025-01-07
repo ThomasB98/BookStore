@@ -42,13 +42,6 @@ namespace BookStore
                 connection = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING");
             }
 
-
-            //delete im
-            builder.WebHost.ConfigureKestrel(options =>
-            {
-                options.Listen(IPAddress.Any, 5000); // Listen on all IP addresses
-            });
-
             builder.Services.AddDbContext<DataContext>(options =>
                 options.UseSqlServer(connection));
 
