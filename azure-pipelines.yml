@@ -2,7 +2,7 @@ trigger:
   - main
 
 pool:
-  name: 'Default'
+  vmImage: 'windows-latest'    # Changed from 'Default' to use Microsoft-hosted agent
 
 variables:
   system.debug: true
