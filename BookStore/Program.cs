@@ -17,6 +17,8 @@ using System.Text;
 using ModelLayer.Model.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Hosting;
+using System.Net;
 
 namespace BookStore
 {
@@ -63,7 +65,7 @@ namespace BookStore
                             .AllowCredentials();
                     });
 
-            });
+                });
 
 
             //builder.Services.AddCors(options =>
@@ -78,7 +80,7 @@ namespace BookStore
             //});
 
             builder.Services.AddDbContext<DataContext>(
-                  options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+                  options => options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING"))
           );
 
 
@@ -226,5 +228,7 @@ namespace BookStore
 
             app.Run();
         }
+
+        
     }
 }

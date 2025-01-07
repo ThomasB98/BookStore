@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241213112719_initionalMigration")]
+    [Migration("20250107105454_initionalMigration")]
     partial class initionalMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -161,21 +161,21 @@ namespace DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("orderDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("orderStatus")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("totalAmount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<float>("totalAmount")
+                        .HasColumnType("real");
+
+                    b.Property<int>("userId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("userId");
 
                     b.ToTable("Order");
                 });
@@ -188,16 +188,21 @@ namespace DataLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
                     b.Property<int>("orderId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("price")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<float>("price")
+                        .HasColumnType("real");
 
                     b.Property<int>("quantity")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BookId");
 
                     b.HasIndex("orderId");
 
@@ -216,6 +221,7 @@ namespace DataLayer.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("orderID")
@@ -226,6 +232,56 @@ namespace DataLayer.Migrations
                     b.HasIndex("orderID");
 
                     b.ToTable("payment");
+                });
+
+            modelBuilder.Entity("ModelLayer.Model.Entity.Shipping", b =>
+                {
+                    b.Property<int>("ShippingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ShippingId"), 1L, 1);
+
+                    b.Property<string>("AddressLine1")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AddressLine2")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ShippingId");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique()
+                        .HasFilter("[OrderId] IS NOT NULL");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("shippingAddress");
                 });
 
             modelBuilder.Entity("ModelLayer.Model.Entity.User", b =>
@@ -366,7 +422,7 @@ namespace DataLayer.Migrations
                 {
                     b.HasOne("ModelLayer.Model.Entity.User", "User")
                         .WithMany("orders")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("userId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -375,11 +431,19 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("ModelLayer.Model.Entity.OrderItem", b =>
                 {
+                    b.HasOne("ModelLayer.Model.Entity.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ModelLayer.Model.Entity.Order", "Order")
                         .WithMany("Items")
                         .HasForeignKey("orderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Book");
 
                     b.Navigation("Order");
                 });
@@ -393,6 +457,23 @@ namespace DataLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("ModelLayer.Model.Entity.Shipping", b =>
+                {
+                    b.HasOne("ModelLayer.Model.Entity.Order", "Order")
+                        .WithOne("Shipping")
+                        .HasForeignKey("ModelLayer.Model.Entity.Shipping", "OrderId");
+
+                    b.HasOne("ModelLayer.Model.Entity.User", "User")
+                        .WithMany("Shippings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ModelLayer.Model.Entity.WishList", b =>
@@ -447,10 +528,15 @@ namespace DataLayer.Migrations
             modelBuilder.Entity("ModelLayer.Model.Entity.Order", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Shipping")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ModelLayer.Model.Entity.User", b =>
                 {
+                    b.Navigation("Shippings");
+
                     b.Navigation("orders");
 
                     b.Navigation("wishList");

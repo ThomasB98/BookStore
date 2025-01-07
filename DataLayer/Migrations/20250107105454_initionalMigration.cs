@@ -112,17 +112,17 @@ namespace DataLayer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
+                    userId = table.Column<int>(type: "int", nullable: false),
                     orderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     orderStatus = table.Column<int>(type: "int", nullable: false),
-                    totalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    totalAmount = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Order", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Order_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Order_Users_userId",
+                        column: x => x.userId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -184,11 +184,18 @@ namespace DataLayer.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     orderId = table.Column<int>(type: "int", nullable: false),
                     quantity = table.Column<int>(type: "int", nullable: false),
-                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    price = table.Column<float>(type: "real", nullable: false),
+                    BookId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OrderItem", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderItem_Book_BookId",
+                        column: x => x.BookId,
+                        principalTable: "Book",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_OrderItem_Order_orderId",
                         column: x => x.orderId,
@@ -204,7 +211,7 @@ namespace DataLayer.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     orderID = table.Column<int>(type: "int", nullable: false),
-                    amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     PaymentStatus = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -214,6 +221,36 @@ namespace DataLayer.Migrations
                         name: "FK_payment_Order_orderID",
                         column: x => x.orderID,
                         principalTable: "Order",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "shippingAddress",
+                columns: table => new
+                {
+                    ShippingId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AddressLine1 = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    AddressLine2 = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    City = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    State = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    PostalCode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_shippingAddress", x => x.ShippingId);
+                    table.ForeignKey(
+                        name: "FK_shippingAddress_Order_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Order",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_shippingAddress_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -270,9 +307,14 @@ namespace DataLayer.Migrations
                 column: "cartId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Order_UserId",
+                name: "IX_Order_userId",
                 table: "Order",
-                column: "UserId");
+                column: "userId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItem_BookId",
+                table: "OrderItem",
+                column: "BookId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItem_orderId",
@@ -283,6 +325,18 @@ namespace DataLayer.Migrations
                 name: "IX_payment_orderID",
                 table: "payment",
                 column: "orderID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_shippingAddress_OrderId",
+                table: "shippingAddress",
+                column: "OrderId",
+                unique: true,
+                filter: "[OrderId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_shippingAddress_UserId",
+                table: "shippingAddress",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_wishlist_userId",
@@ -314,6 +368,9 @@ namespace DataLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "payment");
+
+            migrationBuilder.DropTable(
+                name: "shippingAddress");
 
             migrationBuilder.DropTable(
                 name: "wishlistitem");

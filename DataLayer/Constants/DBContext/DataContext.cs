@@ -27,5 +27,11 @@ namespace DataLayer.Constants.DBContext
         public DbSet<WishList> WishList => Set<WishList>();
         public DbSet<wishListItem> wishListItem => Set<wishListItem>();
         public DbSet<Shipping> Shipping => Set<Shipping>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Payment>().Property(p=>p.amount).HasPrecision(18,2);
+        }
     }
 }

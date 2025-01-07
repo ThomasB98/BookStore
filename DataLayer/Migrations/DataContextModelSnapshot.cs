@@ -219,6 +219,7 @@ namespace DataLayer.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("orderID")
@@ -526,7 +527,8 @@ namespace DataLayer.Migrations
                 {
                     b.Navigation("Items");
 
-                    b.Navigation("Shipping");
+                    b.Navigation("Shipping")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ModelLayer.Model.Entity.User", b =>

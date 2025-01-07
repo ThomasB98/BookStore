@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241217053449_addtionalEntitys")]
-    partial class addtionalEntitys
+    [Migration("20250107111210_NewMigration")]
+    partial class NewMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -221,6 +221,7 @@ namespace DataLayer.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("orderID")
@@ -528,7 +529,8 @@ namespace DataLayer.Migrations
                 {
                     b.Navigation("Items");
 
-                    b.Navigation("Shipping");
+                    b.Navigation("Shipping")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ModelLayer.Model.Entity.User", b =>
