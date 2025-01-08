@@ -17,28 +17,28 @@ namespace ModelLayer.Model.Entity
 
         [Required]
         [MaxLength(100)]
-        public string AddressLine1 { get; set; }
+        public string? AddressLine1 { get; set; }
 
         [MaxLength(100)]
-        public string AddressLine2 { get; set; }
+        public string? AddressLine2 { get; set; }
 
         [Required]
         [MaxLength(50)]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         [Required]
         [MaxLength(50)]
-        public string State { get; set; }
+        public string? State { get; set; }
 
         [Required]
         [MaxLength(20)]
-        public string PostalCode { get; set; }
+        public string? PostalCode { get; set; }
 
         [Required]
         public int UserId { get; set; }
 
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public User? User { get; set; }
 
         public int? OrderId { get; set; } 
 

@@ -12,6 +12,6 @@ namespace ModelLayer.DTO.Order
         public int Id { get; set; }
         public int quantity { get; set; }
         public float price { get; set; }
-        public BookResponseDto Book { get; set; }
+        public BookResponseDto? Book { get; set; }
     }
 }

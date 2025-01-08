@@ -14,6 +14,6 @@ namespace ModelLayer.DTO.Order
         public DateTime orderDate { get; set; }
         public OrderStatus orderStatus { get; set; }
         public float totalAmount { get; set; }
-        public ICollection<OrderItemResponseDto> Items { get; set; }
+        public ICollection<OrderItemResponseDto>? Items { get; set; }
     }
 }
