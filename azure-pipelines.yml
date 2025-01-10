@@ -5,7 +5,7 @@ variables:
   vmConnectionName: 'bookstore2'
   vmIpAddress: '40.76.124.247'
   projectName: 'BookStore'
-  deployPath: '/home/azureuser/BookStore1/gitrepo/BookStore'
+  deployPath: '/home/***/BookStore1/gitrepo/BookStore'
 
 stages:
 - stage: Deploy
@@ -23,23 +23,30 @@ stages:
               sshEndpoint: '$(vmConnectionName)'
               runOptions: 'inline'
               inline: |
-                if [ ! -d "$(deployPath)" ]; then
-                  echo "Directory does not exist. Creating..."
-                  sudo mkdir -p $(deployPath)
-                fi
-                
+                # Fix permissions for the entire project directory
+                sudo chown -R $USER:$USER $(deployPath)
                 sudo chmod -R 755 $(deployPath)
+                
+                # Fix git directory permissions specifically
+                sudo chown -R $USER:$USER $(deployPath)/.git
+                sudo chmod -R 755 $(deployPath)/.git
+                
+                # Ensure .NET build directories have correct permissions
+                find $(deployPath) -type d -name "obj" -exec sudo chmod -R 777 {} \;
+                find $(deployPath) -type d -name "bin" -exec sudo chmod -R 777 {} \;
+                
+                # Configure git
+                cd $(deployPath)
                 sudo git config --global --add safe.directory $(deployPath)
                 
-                cd $(deployPath)
-                
-                if [ ! -d ".git" ]; then
-                  echo "Git repository not found. Initializing..."
-                  git init
-                  git remote add origin YOUR_REPO_URL
-                fi
-                
+                # Pull latest changes
                 git pull origin main
+                
+                # Cleanup any existing build artifacts
+                find . -type d -name "obj" -exec rm -rf {} +
+                find . -type d -name "bin" -exec rm -rf {} +
+                
+                # Restore and build
                 dotnet restore
                 dotnet build --configuration Release
                 dotnet run --configuration Release
