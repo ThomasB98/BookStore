@@ -49,6 +49,10 @@ stages:
       runOnce:
         deploy:
           steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'drop'
+              path: '$(Pipeline.Workspace)/drop'
           - task: SSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
