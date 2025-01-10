@@ -40,7 +40,7 @@ namespace DataLayer.Repository
             }
             var userIdContext = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userId = int.Parse(userIdContext);
-            if (userId == null)
+            if (userId<=0)
             {
                 throw new UserNotLoggedInException("User Not logged in");
             }
