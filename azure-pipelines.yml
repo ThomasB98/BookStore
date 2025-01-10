@@ -5,7 +5,7 @@ variables:
   vmConnectionName: 'bookstore2'
   vmIpAddress: '40.76.124.247'
   projectName: 'BookStore'
-  deployPath: '/home/***/BookStore1/gitrepo/BookStore'
+  deployPath: '/home/azureuser/BookStore'
 
 stages:
 - stage: Deploy
@@ -46,8 +46,19 @@ stages:
                 find . -type d -name "obj" -exec rm -rf {} +
                 find . -type d -name "bin" -exec rm -rf {} +
                 
+                 # Stop existing service if running
+                sudo systemctl stop $(projectName).service || true
+
                 # Restore and build
                 dotnet restore
                 dotnet build --configuration Release
-                dotnet run --configuration Release
+
+                # Reload systemd to apply changes
+                sudo systemctl daemon-reload
+
+                # Start the service
+                sudo systemctl start $(projectName).service
+
+                # Enable service to start on boot
+                sudo systemctl enable $(projectName).service
               failOnStderr: false
