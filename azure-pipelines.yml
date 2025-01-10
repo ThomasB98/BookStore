@@ -1,61 +1,80 @@
 trigger:
-  - main
-
-pool:
-  vmImage: 'Self-Hosted'   
+- main
 
 variables:
-  system.debug: true
-  buildConfiguration: 'Release'
+  vmConnectionName: 'bookstore2'
+  vmIpAddress: '40.76.124.247'
+  projectName: 'BookStore'
+  deployPath: '/home/azureuser/BookStore'
 
-steps:
-- checkout: self
-  clean: true
-  fetchDepth: 1
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        version: '6.0'
+    
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'restore'
+        projects: '**/*.csproj'
+      displayName: 'Restore NuGet packages'
+      
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: '**/*.csproj'
+        arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+      displayName: 'Build the project'
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+      displayName: 'Publish build artifacts'
 
-- task: UseDotNet@2
-  displayName: 'Install .NET SDK'
-  timeoutInMinutes: 10
-  continueOnError: false
-  inputs:
-    packageType: 'sdk'
-    version: '6.0.x'
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - deployment: DeployToVM
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'commands'
+              commands: |
+                # Stop existing service if running
+                sudo systemctl stop $(projectName).service || true
 
-- task: DotNetCoreCLI@2
-  displayName: 'Restore Dependencies'
-  timeoutInMinutes: 15
-  inputs:
-    command: 'restore'
-    projects: '**/*.sln'
+                # Create directory if it doesn't exist
+                mkdir -p $(deployPath)
 
-- task: DotNetCoreCLI@2
-  displayName: 'Build Solution'
-  timeoutInMinutes: 30
-  inputs:
-    command: 'build'
-    projects: '**/*.sln'
-    arguments: '--configuration $(buildConfiguration) --no-restore'
+                # Copy new files
+                cp -r $(Pipeline.Workspace)/drop/* $(deployPath)/
 
-- task: DotNetCoreCLI@2
-  displayName: 'Run Tests'
-  timeoutInMinutes: 20
-  inputs:
-    command: 'test'
-    projects: '**/*[Tt]ests/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --no-build'
+                # Set appropriate permissions
+                chmod -R 755 $(deployPath)
 
-- task: DotNetCoreCLI@2
-  displayName: 'Publish'
-  inputs:
-    command: 'publish'
-    publishWebProjects: true
-    arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: true
+                # Reload systemd to apply changes
+                sudo systemctl daemon-reload
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifacts'
-  timeoutInMinutes: 10
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
+                # Start the service
+                sudo systemctl start $(projectName).service
+
+                # Enable service to start on boot
+                sudo systemctl enable $(projectName).service
+
+                 # Optional: Restart your application if needed
+                # Add any commands you use to restart your application
+              failOnStderr: false
+
