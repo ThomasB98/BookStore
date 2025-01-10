@@ -5,7 +5,7 @@ variables:
   vmConnectionName: 'bookstore2'
   vmIpAddress: '40.76.124.247'
   projectName: 'BookStore'
-  deployPath: '/home/azureuser/BookStore1'
+  deployPath: '/home/azureuser/BookStore1/gitrepo/BookStore'
 
 stages:
 - stage: Deploy
