@@ -53,6 +53,15 @@ stages:
             inputs:
               artifact: 'drop'
               path: '$(Pipeline.Workspace)/drop'
+          - task: SSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'commands'
+              commands: |
+                # Create directory with proper permissions
+                sudo mkdir -p $(deployPath)
+                sudo chown azureuser:azureuser $(deployPath)
+                sudo chmod 755 $(deployPath)
           - task: CopyFilesOverSSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
