@@ -5,7 +5,7 @@ variables:
   vmConnectionName: 'bookstore2'
   vmIpAddress: '40.76.124.247'
   projectName: 'BookStore'
-  deployPath: '/azureuser/BookStore'
+  deployPath: '/home/azureuser/BookStore'
 
 stages:
 - stage: Build
@@ -52,7 +52,7 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               artifact: 'drop'
-              path: '$(Pipeline.Workspace)/drop'
+              path: '/home/vsts/work/1/drop'
           - task: SSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
@@ -65,7 +65,7 @@ stages:
                 mkdir -p $(deployPath)
 
                 # Copy new files
-                cp -r $(Pipeline.Workspace)/drop/* $(deployPath)/
+                cp -r /home/vsts/work/1/drop/* $(deployPath)/
 
                 # Set appropriate permissions
                 chmod -R 755 $(deployPath)
