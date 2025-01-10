@@ -21,13 +21,26 @@ stages:
           - task: SSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
-              runOptions: 'waitAndRetry'
-              retryCount: 3
-              retryWaitTime: '5m'
-              commands: |
+              runOptions: 'inline'
+              inline: |
+                if [ ! -d "$(deployPath)" ]; then
+                  echo "Directory does not exist. Creating..."
+                  sudo mkdir -p $(deployPath)
+                fi
+                
                 sudo chmod -R 755 $(deployPath)
-                git config --global --add safe.directory $(deployPath)
-                cd $(deployPath) && git pull
+                sudo git config --global --add safe.directory $(deployPath)
+                
+                cd $(deployPath)
+                
+                if [ ! -d ".git" ]; then
+                  echo "Git repository not found. Initializing..."
+                  git init
+                  git remote add origin YOUR_REPO_URL
+                fi
+                
+                git pull origin main
                 dotnet restore
-                dotnet build 
-                # dotnet run 
+                dotnet build --configuration Release
+                dotnet run --configuration Release
+              failOnStderr: false
