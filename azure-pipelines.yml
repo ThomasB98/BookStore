@@ -58,11 +58,11 @@ stages:
               sshEndpoint: '$(vmConnectionName)'
               runOptions: 'commands'
               commands: |
+                # Ensure project directory exists
+                sudo mkdir -p $(deployPath)
+
                 # Stop existing service if running
                 sudo systemctl stop $(projectName).service || true
-
-                # Create directory if it doesn't exist
-                mkdir -p $(deployPath)
 
                 # Copy new files
                 cp -r /home/vsts/work/1/drop/* $(deployPath)/
