@@ -24,6 +24,7 @@ stages:
               runOptions: 'commands'
               commands: |
                 cd $(deployPath) && git pull
+                git config --global --add safe.directory $(deployPath)
                 dotnet restore
                 dotnet build --configuration Release
                 # dotnet run --configuration Release
