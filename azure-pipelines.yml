@@ -23,8 +23,8 @@ stages:
               sshEndpoint: '$(vmConnectionName)'
               runOptions: 'commands'
               commands: |
-                cd $(deployPath) && git pull
                 git config --global --add safe.directory $(deployPath)
+                cd $(deployPath) && git pull
                 dotnet restore
                 dotnet build --configuration Release
                 # dotnet run --configuration Release
