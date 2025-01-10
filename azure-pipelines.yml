@@ -75,7 +75,4 @@ stages:
                 # Enable service to start on boot
                 sudo systemctl enable $(projectName).service
 
-                 # Optional: Restart your application if needed
-                # Add any commands you use to restart your application
-              failOnStderr: false
 
