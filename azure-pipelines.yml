@@ -21,8 +21,11 @@ stages:
           - task: SSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
-              runOptions: 'commands'
+              runOptions: 'waitAndRetry'
+              retryCount: 3
+              retryWaitTime: '5m'
               commands: |
+                sudo chmod -R 755 $(deployPath)
                 git config --global --add safe.directory $(deployPath)
                 cd $(deployPath) && git pull
                 dotnet restore
