@@ -29,5 +29,5 @@ stages:
                 git config --global --add safe.directory $(deployPath)
                 cd $(deployPath) && git pull
                 dotnet restore
-                dotnet build --configuration Release
-                # dotnet run --configuration Release
+                dotnet build 
+                # dotnet run 
