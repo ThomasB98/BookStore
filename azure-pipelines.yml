@@ -5,7 +5,7 @@ variables:
   vmConnectionName: 'bookstore2'
   vmIpAddress: '40.76.124.247'
   projectName: 'BookStore'
-  deployPath: '/home/azureuser/BookStore'
+  deployPath: '/home/azureuser/BookStore1'
 
 stages:
 - stage: Build
@@ -52,23 +52,22 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               artifact: 'drop'
-              path: '/home/vsts/work/1/drop'
+              path: '$(Pipeline.Workspace)/drop'
+          - task: CopyFilesOverSSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              sourceFolder: '$(Pipeline.Workspace)/drop'
+              targetFolder: '$(deployPath)'    
+              cleanTargetFolder: true
           - task: SSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
               runOptions: 'commands'
               commands: |
-                # Ensure project directory exists
-                sudo mkdir -p $(deployPath)
-
-                # Stop existing service if running
-                sudo systemctl stop $(projectName).service || true
-
-                # Copy new files
-                cp -r /home/vsts/work/1/drop/* $(deployPath)/
-
                 # Set appropriate permissions
                 chmod -R 755 $(deployPath)
+                # Stop existing service if running
+                sudo systemctl stop $(projectName).service || true
 
                 # Reload systemd to apply changes
                 sudo systemctl daemon-reload
