@@ -55,6 +55,9 @@ stages:
               sshEndpoint: '$(vmConnectionName)'
               runOptions: 'inline'
               inline: |
+                sudo chown -R azureuser:azureuser /home/azureuser/BookStore
+                sudo chmod -R 755 /home/azureuser/BookStore
+
                 # Ensure the deploy path exists or create it
                 echo "Ensuring deploy path exists..."
                 if [ ! -d "$(deployPath)" ]; then
@@ -81,9 +84,11 @@ stages:
                 else
                   echo "Repository already exists. Pulling the latest changes..."
                   cd $repoName
+                  git config --global --add safe.directory /home/azureuser/BookStore/BookStore
                   git reset --hard
                   git pull
                   cd /home/azureuser/BookStore/BookStore/BookStore
+                  sudo chmod +x /snap/bin/dotnet
                   dotnet restore
                   dotnet build
                 fi
