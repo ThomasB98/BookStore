@@ -54,16 +54,16 @@ namespace BookStore
                         .AllowAnyHeader();    // Allow all headers
                 });
 
-                options.AddPolicy("SpecificOrigins",
-                    builder =>
-                    {
-                        builder.WithOrigins(
-                            "http://localhost:4200"
-                            )
-                        .AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .AllowCredentials();
-                    });
+                //options.AddPolicy("SpecificOrigins",
+                //    builder =>
+                //    {
+                //        builder.WithOrigins(
+                //            "http://localhost:4200"
+                //            )
+                //        .AllowAnyMethod()
+                //            .AllowAnyHeader()
+                //            .AllowCredentials();
+                //    });
 
                 });
 
@@ -228,14 +228,5 @@ namespace BookStore
 
             app.Run();
         }
-
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("http://0.0.0.0:5000");
-                });
     }
 }
