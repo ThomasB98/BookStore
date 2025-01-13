@@ -143,12 +143,13 @@ stages:
                   sudo systemctl stop BookStore.service || true
                   echo "Overriding service file content..."
                   echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
+                  sudo systemctl daemon-reload
                 else
                   echo "Service file does not exist. Creating it..."
                   echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
+                  sudo systemctl daemon-reload
                 fi
 
-                sudo systemctl daemon-reload
                 sudo systemctl start $(projectName).service
                 sudo systemctl enable $(projectName).service
 
