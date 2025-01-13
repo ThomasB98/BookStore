@@ -1,5 +1,5 @@
 trigger:
-- main
+- master
 
 variables:
   vmConnectionName: 'backend'           # Service connection name for the VM
