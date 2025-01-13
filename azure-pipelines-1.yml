@@ -1,3 +1,10 @@
+resources:
+  repositories:
+    - repository: myGitHubRepo
+      type: github
+      name: ThomasB98/BookStore
+      endpoint: github.com_ThomasB98
+
 trigger:
 - master
 
