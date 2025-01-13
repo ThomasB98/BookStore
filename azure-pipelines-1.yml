@@ -147,9 +147,7 @@ stages:
                   echo "Service file does not exist. Creating it..."
                   echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
                 fi
-
-                # Reload systemd daemon
                 sudo systemctl daemon-reload
-                sudo systemctl start BookStore
-                sudo systemctl enable BookStore
+                sudo systemctl start BookStore.service
+                sudo systemctl enable BookStore.service
 
