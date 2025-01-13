@@ -3,7 +3,7 @@ trigger:
 
 variables:
   vmConnectionName: 'backend'           # Service connection name for the VM
-  vmIpAddress: '20.9.143.63'           # IP address of the target VM
+  vmIpAddress: '20.51.126.98'           # IP address of the target VM
   projectName: 'BookStore'             # Project name for reference
   deployPath: '/home/azureuser/BookStore'  # Path where the application will be deployed
 
