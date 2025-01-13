@@ -29,6 +29,8 @@ stages:
                 echo "Updating package list..."
                 sudo apt-get update
 
+                wget deb http://cz.archive.ubuntu.com/ubuntu
+
                 # Install the .NET SDK and runtime via Snap
                 echo "Installing .NET SDK..."
                 sudo snap install dotnet-sdk --classic --channel=6.0
