@@ -127,7 +127,7 @@ stages:
 
                 [Service]
                 WorkingDirectory=/home/azureuser/BookStore/BookStore/BookStore
-                ExecStart=/usr/bin/dotnet /home/azureuser/BookStore/BookStore/BookStore/BookStore.csproj
+                ExecStart=/usr/bin/dotnet run
                 Restart=always
                 RestartSec=10
                 User=azureuser
