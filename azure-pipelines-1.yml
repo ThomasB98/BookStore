@@ -29,17 +29,14 @@ stages:
                 echo "Updating package list..."
                 sudo apt-get update
 
-                wget deb http://cz.archive.ubuntu.com/ubuntu
-
-                # Install the .NET SDK and runtime via Snap
-                echo "Installing .NET SDK..."
-                sudo snap install dotnet-sdk --classic --channel=6.0
-                echo "Installing .NET Runtime..."
-                sudo snap install dotnet-runtime-60
-
-                # Verify installation
-                echo "Verifying .NET installation..."
-                dotnet --version
+                if ! dotnet --version | grep -q '6.0'; then
+                  echo "Installing .NET SDK..."
+                  sudo snap install dotnet-sdk --classic --channel=6.0
+                  echo "Installing .NET Runtime..."
+                  sudo snap install dotnet-runtime-60
+                else
+                  echo ".NET SDK and Runtime already installed."
+                fi
 
 - stage: ManageServiceFile
   displayName: "Manage Service File"
