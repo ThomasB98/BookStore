@@ -127,7 +127,8 @@ stages:
 
                 [Service]
                 WorkingDirectory=/home/azureuser/BookStore/BookStore/BookStore
-                ExecStart=/usr/bin/dotnet run
+                ExecStart=/snap/bin/dotnet run
+
                 Restart=always
                 RestartSec=10
                 User=azureuser
