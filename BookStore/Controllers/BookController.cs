@@ -43,7 +43,7 @@ namespace BookStore.Controllers
         // POST
         [HttpPost]
         [Authorize(Policy = "RoleAdmin")]
-        public async Task<IActionResult> AddBook([FromBody] BookCreateDto book)
+        public async Task<IActionResult> AddBook([FromBody] ModelLayer.DTO.Book.BookCreateDto book)
         {
             if (!ModelState.IsValid)
             {

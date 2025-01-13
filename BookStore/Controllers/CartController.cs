@@ -20,7 +20,7 @@ namespace BookStore.Controllers
 
         // Adds an item to the cart
         [HttpPost("add")]
-        public async Task<IActionResult> AddItemToCart([FromBody] CartItemCreateDto cartItemDto)
+        public async Task<IActionResult> AddItemToCart([FromBody] ModelLayer.DTO.Cart_CartItem.CartItemCreateDto cartItemDto)
         {
             var response = await _cartService.AddItemToCartAsync(cartItemDto);
             if (response.Success)
@@ -44,7 +44,7 @@ namespace BookStore.Controllers
 
         // Updates the quantity of a cart item
         [HttpPut("update-quantity")]
-        public async Task<IActionResult> UpdateCartItemQuantity([FromBody] CartItemUpdateDto updateDto)
+        public async Task<IActionResult> UpdateCartItemQuantity([FromBody] ModelLayer.DTO.Cart_CartItem.CartItemUpdateDto updateDto)
         {
             var userContext = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 

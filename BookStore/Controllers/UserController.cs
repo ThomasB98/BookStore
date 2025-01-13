@@ -19,7 +19,7 @@ namespace BookStore.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> RegisterUser([FromBody] UserRegistrationDto userDto)
+        public async Task<IActionResult> RegisterUser([FromBody] ModelLayer.DTO.User.UserRegistrationDto userDto)
         {
             var result =await _userService.CreateUserAsync(userDto);
 
@@ -32,7 +32,7 @@ namespace BookStore.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] ModelLayer.DTO.User.UserLoginDto loginDto)
         {
             var result=await _userService.Login(loginDto);
 

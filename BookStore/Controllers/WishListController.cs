@@ -44,7 +44,7 @@ namespace BookStore.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToWishList([FromBody] AddToWishListDTO addToWishList)
         {
-            var bookId = addToWishList.bookId;
+            var bookId = addToWishList.BookId;
             var response = await _wishListService.AddToWishListAsync(bookId);
             if (response.Success)
             {

@@ -23,7 +23,7 @@ namespace BookStore.Controllers
         // Adds a new shipping address
         [HttpPost("add")]
         [Authorize]
-        public async Task<IActionResult> AddAddress([FromBody] ShippingCreateDto shippingDto)
+        public async Task<IActionResult> AddAddress([FromBody] ModelLayer.DTO.Shipping.ShippingCreateDto shippingDto)
         {
             var response = await _shippingService.AddAddressAsync(shippingDto);
             if (response.Success)
