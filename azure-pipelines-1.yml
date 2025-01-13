@@ -13,7 +13,7 @@ stages:
   jobs:
   - deployment: InstallDotNetToVM
     displayName: "Install .NET on VM"
-    environment: 'Production'
+    environment: 'Development'
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -43,7 +43,7 @@ stages:
   jobs:
   - deployment: GetSourceCode
     displayName: "Get source code on VM"
-    environment: 'Production'
+    environment: 'Development'
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -104,7 +104,7 @@ stages:
   jobs:
   - deployment: ManageServiceFileOnVM
     displayName: "Create or Update Service File"
-    environment: 'Production'
+    environment: 'Development'
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -127,7 +127,7 @@ stages:
 
                 [Service]
                 WorkingDirectory=/home/azureuser/BookStore/BookStore/BookStore
-                ExecStart=/usr/bin/dotnet run
+                ExecStart=/usr/bin/dotnet /home/azureuser/BookStore/BookStore/BookStore/BookStore.csproj
                 Restart=always
                 RestartSec=10
                 User=azureuser
