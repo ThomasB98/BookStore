@@ -1,0 +1,144 @@
+trigger:
+- main
+
+variables:
+  vmConnectionName: 'backend'           # Service connection name for the VM
+  vmIpAddress: '20.9.143.63'           # IP address of the target VM
+  projectName: 'BookStore'             # Project name for reference
+  deployPath: '/home/azureuser/BookStore'  # Path where the application will be deployed
+
+stages:
+- stage: InstallDotNet
+  displayName: "Install .NET SDK"
+  jobs:
+  - deployment: InstallDotNetToVM
+    displayName: "Install .NET on VM"
+    environment: 'Production'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'inline'
+              inline: |
+                # Update package list
+                echo "Updating package list..."
+                sudo apt-get update
+
+                # Install the .NET SDK and runtime via Snap
+                echo "Installing .NET SDK..."
+                sudo snap install dotnet-sdk --classic --channel=6.0
+                echo "Installing .NET Runtime..."
+                sudo snap install dotnet-runtime-60
+
+                # Verify installation
+                echo "Verifying .NET installation..."
+                dotnet --version
+
+- stage: ManageServiceFile
+  displayName: "Manage Service File"
+  jobs:
+  - deployment: ManageServiceFileOnVM
+    displayName: "Create or Update Service File"
+    environment: 'Production'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'inline'
+              inline: |
+                # Path to the service file
+                serviceFilePath="/etc/systemd/system/BookStore.service"
+
+                # Content for the service file
+                serviceFileContent="
+                [Unit]
+                Description=BookStore .NET Application
+                After=network.target
+
+                [Service]
+                WorkingDirectory=/home/azureuser/BookStore/BookStore
+                ExecStart=/usr/bin/dotnet run
+                Restart=always
+                RestartSec=10
+                User=azureuser
+                Environment=ASPNETCORE_ENVIRONMENT=Development
+
+                [Install]
+                WantedBy=multi-user.target"
+
+                # Check if the service file exists
+                echo "Checking for existing service file..."
+                if [ -f "$serviceFilePath" ]; then
+                  echo "Service file exists. Stopping the service..."
+                  sudo systemctl stop BookStore.service || true
+                  echo "Overriding service file content..."
+                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
+                else
+                  echo "Service file does not exist. Creating it..."
+                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
+                fi
+
+- stage: GetSourceCode
+  displayName: "GetSourceCode"
+  jobs:
+  - deployment: GetSourceCode
+    displayName: "Get source code on VM"
+    environment: 'Production'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+           - task: SSH@0
+             inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'inline'
+              inline: |
+                # Ensure the deploy path exists or create it
+                echo "Ensuring deploy path exists..."
+                if [ ! -d "$(deployPath)" ]; then
+                  echo "Directory $(deployPath) does not exist. Creating it..."
+                  mkdir -p $(deployPath)
+                else
+                  echo "Directory $(deployPath) already exists. Navigating into it..."
+                fi
+                cd $(deployPath)
+
+                # Confirm the working directory
+                echo "Current working directory is:"
+                pwd
+
+                # Check if the repository is cloned
+                repoUrl="https://github.com/ThomasB98/BookStore.git"
+                repoName="BookStore"
+                if [ ! -d "$(deployPath)/$repoName/.git" ]; then
+                  echo "Repository not present. Cloning the repository..."
+                  git clone $repoUrl
+                else
+                  echo "Repository already exists. Pulling the latest changes..."
+                  cd $repoName
+                  git reset --hard
+                  git pull
+                fi
+
+                # Navigate into the repository folder
+                if [ -d "$(deployPath)/$repoName" ]; then
+                  cd $(deployPath)/$repoName
+                fi
+
+                # Display the current Git branch and status
+                echo "Current Git branch:"
+                git branch --show-current
+                echo "Git status:"
+                git status
