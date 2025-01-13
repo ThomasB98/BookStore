@@ -120,7 +120,7 @@ stages:
                 After=network.target
 
                 [Service]
-                WorkingDirectory=/home/azureuser/BookStore/BookStore
+                WorkingDirectory=/home/azureuser/BookStore/BookStore/BookStore
                 ExecStart=/usr/bin/dotnet run
                 Restart=always
                 RestartSec=10
@@ -135,11 +135,14 @@ stages:
                 if [ -f "$serviceFilePath" ]; then
                   echo "Service file exists. Stopping the service..."
                   sudo systemctl stop BookStore.service || true
-                  # echo "Overriding service file content..."
-                  # echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
-                  # sudo systemctl daemon-reload
+                  echo "Overriding service file content..."
+                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
                 else
                   echo "Service file does not exist. Creating it..."
                   echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
                 fi
+
+                sudo systemctl daemon-reload
+                sudo systemctl start $(projectName).service
+                sudo systemctl enable $(projectName).service
 
