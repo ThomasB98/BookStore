@@ -38,56 +38,6 @@ stages:
                   echo ".NET SDK and Runtime already installed."
                 fi
 
-- stage: ManageServiceFile
-  displayName: "Manage Service File"
-  jobs:
-  - deployment: ManageServiceFileOnVM
-    displayName: "Create or Update Service File"
-    environment: 'Production'
-    pool:
-      vmImage: 'ubuntu-latest'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: SSH@0
-            inputs:
-              sshEndpoint: '$(vmConnectionName)'
-              runOptions: 'inline'
-              inline: |
-                # Path to the service file
-                serviceFilePath="/etc/systemd/system/BookStore.service"
-
-                # Content for the service file
-                serviceFileContent="
-                [Unit]
-                Description=BookStore .NET Application
-                After=network.target
-
-                [Service]
-                WorkingDirectory=/home/azureuser/BookStore/BookStore
-                ExecStart=/usr/bin/dotnet run
-                Restart=always
-                RestartSec=10
-                User=azureuser
-                Environment=ASPNETCORE_ENVIRONMENT=Development
-
-                [Install]
-                WantedBy=multi-user.target"
-
-                # Check if the service file exists
-                echo "Checking for existing service file..."
-                if [ -f "$serviceFilePath" ]; then
-                  echo "Service file exists. Stopping the service..."
-                  sudo systemctl stop BookStore.service || true
-                  echo "Overriding service file content..."
-                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
-                  sudo systemctl daemon-reload
-                else
-                  echo "Service file does not exist. Creating it..."
-                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
-                fi
-
 - stage: GetSourceCode
   displayName: "GetSourceCode"
   jobs:
@@ -142,3 +92,54 @@ stages:
                 git branch --show-current
                 echo "Git status:"
                 git status
+
+- stage: ManageServiceFile
+  displayName: "Manage Service File"
+  jobs:
+  - deployment: ManageServiceFileOnVM
+    displayName: "Create or Update Service File"
+    environment: 'Production'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'inline'
+              inline: |
+                # Path to the service file
+                serviceFilePath="/etc/systemd/system/BookStore.service"
+
+                # Content for the service file
+                serviceFileContent="
+                [Unit]
+                Description=BookStore .NET Application
+                After=network.target
+
+                [Service]
+                WorkingDirectory=/home/azureuser/BookStore/BookStore
+                ExecStart=/usr/bin/dotnet run
+                Restart=always
+                RestartSec=10
+                User=azureuser
+                Environment=ASPNETCORE_ENVIRONMENT=Development
+
+                [Install]
+                WantedBy=multi-user.target"
+
+                # Check if the service file exists
+                echo "Checking for existing service file..."
+                if [ -f "$serviceFilePath" ]; then
+                  echo "Service file exists. Stopping the service..."
+                  sudo systemctl stop BookStore.service || true
+                  # echo "Overriding service file content..."
+                  # echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
+                  # sudo systemctl daemon-reload
+                else
+                  echo "Service file does not exist. Creating it..."
+                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
+                fi
+
