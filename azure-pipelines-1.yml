@@ -29,9 +29,6 @@ stages:
                 echo "Updating package list..."
                 sudo apt-get update
 
-                wget deb http://cz.archive.ubuntu.com/ubuntu
-                sudo apt-get update
-
                 if ! dotnet --version | grep -q '6.0'; then
                   echo "Installing .NET SDK..."
                   sudo snap install dotnet-sdk --classic --channel=6.0
