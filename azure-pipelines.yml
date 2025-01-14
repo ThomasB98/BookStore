@@ -15,6 +15,36 @@ variables:
   deployPath: '/home/azureuser/BookStore'
 
 stages:
+- stage: InstallDotNet
+  displayName: "Install .NET SDK"
+  jobs:
+  - deployment: InstallDotNetToVM
+    displayName: "Install .NET on VM"
+    environment: 'Development'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'inline'
+              inline: |
+                # Update package list
+                echo "Updating package list..."
+                sudo apt-get update
+
+                if ! dotnet --version | grep -q '6.0'; then
+                  echo "Installing .NET SDK..."
+                  sudo snap install dotnet-sdk --classic --channel=6.0
+                  echo "Installing .NET Runtime..."
+                  sudo snap install dotnet-runtime-60
+                else
+                  echo ".NET SDK and Runtime already installed."
+                fi
+
 - stage: Build
   jobs:
   - job: BuildJob
@@ -80,6 +110,35 @@ stages:
               sshEndpoint: '$(vmConnectionName)'
               runOptions: 'commands'
               commands: |
+                # Check if the service file exists
+                if [ ! -f /etc/systemd/system/$(projectName).service ]; then
+                  echo "Service file not found. Creating a new one..."
+                  # Create a new service file
+                  sudo bash -c 'cat > /etc/systemd/system/$(projectName).service <<EOF
+                    [Unit]
+                    Description=BookStore .NET Application
+                    After=network.target
+
+                    [Service]
+                    WorkingDirectory=/home/azureuser/BookStore
+                    ExecStart=/snap/bin/dotnet BookStore.dll
+
+                    Restart=always
+                    RestartSec=10
+                    User=azureuser
+                    Environment=ASPNETCORE_ENVIRONMENT=Production
+                    Environment=ASPNETCORE_URLS=https://0.0.0.0:5001
+
+                    [Install]
+                    WantedBy=multi-user.target
+                  EOF'
+                  # Reload systemd to recognize the new service
+                  sudo systemctl daemon-reload
+                  echo "Service file created."
+                else
+                  echo "Service file already exists. Proceeding..."
+                fi
+
                 # Set appropriate permissions
                 chmod -R 755 $(deployPath)
                 # Stop existing service if running
@@ -93,5 +152,6 @@ stages:
 
                 # Enable service to start on boot
                 sudo systemctl enable $(projectName).service
+
 
 
