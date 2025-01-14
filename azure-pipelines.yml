@@ -108,52 +108,43 @@ stages:
           - task: SSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
-              runOptions: 'commands'
-              commands: |
+              runOptions: 'inline'
+              inline: |
+                # Path to the service file
+                serviceFilePath="/etc/systemd/system/BookStore.service"
+
+                # Content for the service file
+                serviceFileContent="
+                [Unit]
+                Description=BookStore .NET Application
+                After=network.target
+
+                [Service]
+                WorkingDirectory=/home/azureuser/BookStore
+                ExecStart=/snap/bin/dotnet BookStore.dll
+
+                Restart=always
+                RestartSec=10
+                User=azureuser
+                Environment=ASPNETCORE_ENVIRONMENT=Production
+                Environment=ASPNETCORE_URLS="https://0.0.0.0:5001"
+
+                [Install]
+                WantedBy=multi-user.target"
+
                 # Check if the service file exists
-                if [ ! -f /etc/systemd/system/$(projectName).service ]; then
-                  echo "Service file not found. Creating a new one..."
-                  # Path to the service file
-                  serviceFilePath="/etc/systemd/system/BookStore.service"
-                  # Create a new service file
-                  # Content for the service file
-                  serviceFileContent="
-                  [Unit]
-                  Description=BookStore .NET Application
-                  After=network.target
-
-                  [Service]
-                  WorkingDirectory=/home/azureuser/BookStore/BookStore/BookStore
-                  ExecStart=/snap/bin/dotnet run
-
-                  Restart=always
-                  RestartSec=10
-                  User=azureuser
-                  Environment=ASPNETCORE_ENVIRONMENT=Development
-
-                  [Install]
-                  WantedBy=multi-user.target"
-                  # Reload systemd to recognize the new service
+                echo "Checking for existing service file..."
+                if [ -f "$serviceFilePath" ]; then
+                  echo "Service file exists. Stopping the service..."
+                  sudo systemctl stop BookStore.service || true
+                  echo "Overriding service file content..."
                   echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
-                  sudo systemctl daemon-reload
-                  echo "Service file created."
                 else
-                  echo "Service file already exists. Proceeding..."
+                  echo "Service file does not exist. Creating it..."
+                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
                 fi
-
-                # Set appropriate permissions
-                chmod -R 755 $(deployPath)
-                # Stop existing service if running
-                sudo systemctl stop $(projectName).service || true
-
-                # Reload systemd to apply changes
                 sudo systemctl daemon-reload
-
-                # Start the service
-                sudo systemctl start $(projectName).service
-
-                # Enable service to start on boot
-                sudo systemctl enable $(projectName).service
-
+                sudo systemctl start BookStore.service
+                sudo systemctl enable BookStore.service
 
 
