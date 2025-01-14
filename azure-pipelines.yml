@@ -110,6 +110,7 @@ stages:
               sshEndpoint: '$(vmConnectionName)'
               runOptions: 'inline'
               inline: |
+                set -e
                 # Path to the service file
                 serviceFilePath="/etc/systemd/system/BookStore.service"
 
@@ -132,19 +133,21 @@ stages:
                 [Install]
                 WantedBy=multi-user.target"
 
-                # Check if the service file exists
-                echo "Checking for existing service file..."
+                # Check if the service file already exists
                 if [ -f "$serviceFilePath" ]; then
                   echo "Service file exists. Stopping the service..."
                   sudo systemctl stop BookStore.service || true
-                  echo "Overriding service file content..."
-                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
                 else
                   echo "Service file does not exist. Creating it..."
-                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
                 fi
+
+                # Write the service file
+                echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
+
+                # Reload systemd and restart the service
                 sudo systemctl daemon-reload
-                sudo systemctl start BookStore.service
+                sudo systemctl restart BookStore.service
                 sudo systemctl enable BookStore.service
+
 
 
