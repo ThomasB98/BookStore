@@ -113,26 +113,28 @@ stages:
                 # Check if the service file exists
                 if [ ! -f /etc/systemd/system/$(projectName).service ]; then
                   echo "Service file not found. Creating a new one..."
+                  # Path to the service file
+                  serviceFilePath="/etc/systemd/system/BookStore.service"
                   # Create a new service file
-                  sudo bash -c 'cat > /etc/systemd/system/$(projectName).service <<EOF
-                    [Unit]
-                    Description=BookStore .NET Application
-                    After=network.target
+                  # Content for the service file
+                  serviceFileContent="
+                  [Unit]
+                  Description=BookStore .NET Application
+                  After=network.target
 
-                    [Service]
-                    WorkingDirectory=/home/azureuser/BookStore
-                    ExecStart=/snap/bin/dotnet BookStore.dll
+                  [Service]
+                  WorkingDirectory=/home/azureuser/BookStore/BookStore/BookStore
+                  ExecStart=/snap/bin/dotnet run
 
-                    Restart=always
-                    RestartSec=10
-                    User=azureuser
-                    Environment=ASPNETCORE_ENVIRONMENT=Production
-                    Environment=ASPNETCORE_URLS=https://0.0.0.0:5001
+                  Restart=always
+                  RestartSec=10
+                  User=azureuser
+                  Environment=ASPNETCORE_ENVIRONMENT=Development
 
-                    [Install]
-                    WantedBy=multi-user.target
-                  EOF'
+                  [Install]
+                  WantedBy=multi-user.target"
                   # Reload systemd to recognize the new service
+                  echo "$serviceFileContent" | sudo tee $serviceFilePath > /dev/null
                   sudo systemctl daemon-reload
                   echo "Service file created."
                 else
