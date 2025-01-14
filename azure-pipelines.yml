@@ -1,14 +1,52 @@
+resources:
+  repositories:
+    - repository: myGitHubRepo
+      type: github
+      name: ThomasB98/BookStore
+      endpoint: github.com_ThomasB98
+
 trigger:
 - main
 
 variables:
-  vmConnectionName: 'bookstore2'
-  vmIpAddress: '40.76.124.247'
+  vmConnectionName: 'bookstorebk'
+  vmIpAddress: '172.179.232.92'
   projectName: 'BookStore'
   deployPath: '/home/azureuser/BookStore'
 
 stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        version: '6.0.408'
+    
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'restore'
+        projects: '**/*.csproj'
+      displayName: 'Restore NuGet packages'
+      
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: '**/*.csproj'
+        arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+      displayName: 'Build the project'
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+      displayName: 'Publish build artifacts'
+
 - stage: Deploy
+  dependsOn: Build
   jobs:
   - deployment: DeployToVM
     environment: 'Production'
@@ -18,40 +56,34 @@ stages:
       runOnce:
         deploy:
           steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'drop'
+              path: '$(Pipeline.Workspace)/drop'
           - task: SSH@0
             inputs:
               sshEndpoint: '$(vmConnectionName)'
-              runOptions: 'inline'
-              inline: |
-                # Fix permissions for the entire project directory
-                sudo chown -R $USER:$USER $(deployPath)
-                sudo chmod -R 755 $(deployPath)
-                
-                # Fix git directory permissions specifically
-                sudo chown -R $USER:$USER $(deployPath)/.git
-                sudo chmod -R 755 $(deployPath)/.git
-                
-                # Ensure .NET build directories have correct permissions
-                find $(deployPath) -type d -name "obj" -exec sudo chmod -R 777 {} \;
-                find $(deployPath) -type d -name "bin" -exec sudo chmod -R 777 {} \;
-                
-                # Configure git
-                cd $(deployPath)
-                sudo git config --global --add safe.directory $(deployPath)
-                
-                # Pull latest changes
-                git pull origin main
-                
-                # Cleanup any existing build artifacts
-                find . -type d -name "obj" -exec rm -rf {} +
-                find . -type d -name "bin" -exec rm -rf {} +
-                
-                 # Stop existing service if running
+              runOptions: 'commands'
+              commands: |
+                # Create directory with proper permissions
+                sudo mkdir -p $(deployPath)
+                sudo chown azureuser:azureuser $(deployPath)
+                sudo chmod 755 $(deployPath)
+          - task: CopyFilesOverSSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              sourceFolder: '$(Pipeline.Workspace)/drop'
+              targetFolder: '$(deployPath)'    
+              cleanTargetFolder: true
+          - task: SSH@0
+            inputs:
+              sshEndpoint: '$(vmConnectionName)'
+              runOptions: 'commands'
+              commands: |
+                # Set appropriate permissions
+                chmod -R 755 $(deployPath)
+                # Stop existing service if running
                 sudo systemctl stop $(projectName).service || true
-
-                # Restore and build
-                dotnet restore
-                dotnet build --configuration Release
 
                 # Reload systemd to apply changes
                 sudo systemctl daemon-reload
@@ -61,4 +93,5 @@ stages:
 
                 # Enable service to start on boot
                 sudo systemctl enable $(projectName).service
-              failOnStderr: false
+
+
